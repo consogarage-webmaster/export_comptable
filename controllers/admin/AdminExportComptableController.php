@@ -84,7 +84,7 @@ class AdminExportComptableController extends ModuleAdminController
                 oi.date_add AS invoice_date,
                 o.reference AS order_reference,
                 o.id_order,
-                c.firstname, c.lastname, c.company,
+                a.firstname, a.lastname, a.company, -- <-- ici !
                 a.id_country,
                 country.iso_code AS country_iso,
                 oi.total_paid_tax_incl,
@@ -93,7 +93,6 @@ class AdminExportComptableController extends ModuleAdminController
                 oi.total_shipping_tax_excl AS shipping_ht
             FROM ' . _DB_PREFIX_ . 'order_invoice oi
             INNER JOIN ' . _DB_PREFIX_ . 'orders o ON (o.id_order = oi.id_order)
-            INNER JOIN ' . _DB_PREFIX_ . 'customer c ON (c.id_customer = o.id_customer)
             INNER JOIN ' . _DB_PREFIX_ . 'address a ON (a.id_address = o.id_address_invoice)
             INNER JOIN ' . _DB_PREFIX_ . 'country country ON (country.id_country = a.id_country)
             ' . $where . $orderBy . $limit;
@@ -112,7 +111,7 @@ class AdminExportComptableController extends ModuleAdminController
 
             $isFrance = (strtoupper((string) $inv['country_iso']) === 'FR');
 
-            // Libellé: prenom nom [ - company]
+            // Libellé: prenom nom [ - company] depuis l'adresse de facturation
             $label = trim($inv['firstname'] . ' ' . $inv['lastname']);
             if (!empty($inv['company'])) {
                 $label .= ' - ' . $inv['company'];
@@ -133,7 +132,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'JNAL' => $code_journal,
                 'NECR' => '',
                 'NPIE' => $invoiceNumber,
-                'DATP' => $invoiceDate->format('Y-m-d'),
+                'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
                 'DATH' => '',
                 'CNPI' => '',
@@ -174,7 +173,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'JNAL' => $code_journal,
                 'NECR' => '',
                 'NPIE' => $invoiceNumber,
-                'DATP' => $invoiceDate->format('Y-m-d'),
+                'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
                 'DATH' => '',
                 'CNPI' => '',
@@ -216,7 +215,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'JNAL' => $code_journal,
                     'NECR' => '',
                     'NPIE' => $invoiceNumber,
-                    'DATP' => $invoiceDate->format('Y-m-d'),
+                    'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
                     'DATH' => '',
                     'CNPI' => '',
@@ -259,7 +258,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'JNAL' => $code_journal,
                     'NECR' => '',
                     'NPIE' => $invoiceNumber,
-                    'DATP' => $invoiceDate->format('Y-m-d'),
+                    'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
                     'DATH' => '',
                     'CNPI' => '',
