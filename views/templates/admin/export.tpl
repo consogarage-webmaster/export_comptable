@@ -48,23 +48,27 @@
                     {/foreach}
                 </tr>
             </thead>
-            <tbody>
-                {if $rows|@count == 0}
+            {if $rows|@count == 0}
+                <tbody>
                     <tr>
                         <td colspan="37" class="text-center text-muted">
                             {l s='Aucune donnée pour les critères sélectionnés.' mod='export_comptable'}
                         </td>
                     </tr>
-                {else}
-                    {foreach from=$rows item=line}
-                        <tr>
-                            {foreach from=$line key=k item=v}
-                                <td>{if $k=='MONT'}{$v|escape:'html'}{else}{$v|escape:'html'}{/if}</td>
-                            {/foreach}
-                        </tr>
-                    {/foreach}
-                {/if}
-            </tbody>
+                </tbody>
+            {else}
+                {foreach from=$rows item=lines}
+                    <tbody>
+                        {foreach from=$lines item=line}
+                            <tr>
+                                {foreach from=$line key=k item=v}
+                                    <td>{$v|escape:'html'}</td>
+                                {/foreach}
+                            </tr>
+                        {/foreach}
+                    </tbody>
+                {/foreach}
+            {/if}
         </table>
     </div>
 </div>
@@ -74,20 +78,16 @@
         position: sticky;
         top: 0;
         z-index: 2;
-        background: #222;
-        color: #fff;
+        background: #fff;
+        color: #000;
     }
 
     thead tr:nth-child(2) th {
         position: sticky;
         top: 38px;
         z-index: 1;
-        background: #333;
-        color: #fff;
+        background: #fff;
+        color: #333;
         font-weight: normal;
-    }
-
-    tbody tr:nth-child(4n+1) {
-        background: #f9f9f9;
     }
 </style>

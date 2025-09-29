@@ -84,7 +84,7 @@ class AdminExportComptableController extends ModuleAdminController
                 oi.date_add AS invoice_date,
                 o.reference AS order_reference,
                 o.id_order,
-                a.firstname, a.lastname, a.company, -- <-- ici !
+                a.firstname, a.lastname, a.company,
                 a.id_country,
                 country.iso_code AS country_iso,
                 oi.total_paid_tax_incl,
