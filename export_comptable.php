@@ -7,7 +7,7 @@ class Export_Comptable extends Module
 {
     public function __construct()
     {
-        $this->name = 'export_comptable'; // doit correspondre au dossier
+        $this->name = 'export_comptable';
         $this->tab = 'administration';
         $this->version = '1.0.1';
         $this->author = 'Consogarage';
@@ -33,7 +33,6 @@ class Export_Comptable extends Module
 
     protected function installTab()
     {
-        // Onglet sous Ventes > Commandes (AdminParentOrders)
         $id_parent = (int) Tab::getIdFromClassName('AdminParentOrders');
         if (!$id_parent) {
             $id_parent = 0;

@@ -35,15 +35,8 @@ class AdminExportComptableController extends ModuleAdminController
             'headers' => $this->getHeaders(),
             'token' => $this->token,
         ]);
-
-        // Utilise la notation "module:" (PS 1.7/8)
         $this->setTemplate('/export.tpl');
     }
-
-    /**
-     * En-têtes (2 lignes)
-     * Les 37 colonnes doivent rester alignées avec l’ordre des clés de makeRow().
-     */
     protected function getHeaders()
     {
         return [
@@ -60,7 +53,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'Montant en euros',
                 'Code débit/crédit (C,D)',
                 'Compte général',
-                'Date (date facture ?)',
+                'Date (date facture)',
                 'Code lettrage',
                 'Date lettrage',
                 'Compte auxiliaire',
@@ -127,14 +120,8 @@ class AdminExportComptableController extends ModuleAdminController
             ],
         ];
     }
-
-    /**
-     * Retourne un tableau GROUPÉ : array<array<row>>
-     * $groups[0] = [ligne1, ligne2, (ligne3 si frais), (ligne4 si TVA)]
-     */
     protected function getAccountingRows($date_from, $date_to)
     {
-        // Construction du WHERE (échappé)
         $whereParts = ['oi.number > 0'];
         if ($date_from) {
             $whereParts[] = "DATE(oi.date_add) >= '" . pSQL($date_from) . "'";
@@ -422,7 +409,7 @@ class AdminExportComptableController extends ModuleAdminController
     }
 
     /**
-     * Export CSV compatible avec la structure groupée ($rows = array<array<row>>)
+     * Export CSV
      */
     protected function exportCsv(array $rows)
     {
