@@ -10,7 +10,7 @@ class Export_Comptable extends Module
         $this->name = 'export_comptable'; // doit correspondre au dossier
         $this->tab = 'administration';
         $this->version = '1.0.1';
-        $this->author = 'ChatGPT';
+        $this->author = 'Consogarage';
         $this->need_instance = 0;
         $this->bootstrap = true;
 
