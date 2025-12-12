@@ -7,24 +7,23 @@ class Export_Comptable extends Module
 {
     public function __construct()
     {
-        $this->name = 'export_comptable';
+        $this->name = 'export_comptable'; // doit correspondre au dossier
         $this->tab = 'administration';
-        $this->version = '1.0.0';
-        $this->author = 'Consogarage';
+        $this->version = '1.0.1';
+        $this->author = 'ChatGPT';
         $this->need_instance = 0;
         $this->bootstrap = true;
 
         parent::__construct();
 
         $this->displayName = $this->l('Export comptable');
-        $this->description = $this->l('Affiche un tableau exportable en CSV des écritures comptables par facture (4 lignes).');
+        $this->description = $this->l('Tableau (4 lignes par facture) + filtre date + export CSV.');
         $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => _PS_VERSION_];
     }
 
     public function install()
     {
-        return parent::install()
-            && $this->installTab();
+        return parent::install() && $this->installTab();
     }
 
     public function uninstall()
@@ -34,7 +33,8 @@ class Export_Comptable extends Module
 
     protected function installTab()
     {
-        $id_parent = (int) Tab::getIdFromClassName('AdminParentOrders'); // Vendre > Commandes
+        // Onglet sous Ventes > Commandes (AdminParentOrders)
+        $id_parent = (int) Tab::getIdFromClassName('AdminParentOrders');
         if (!$id_parent) {
             $id_parent = 0;
         }

@@ -1,5 +1,6 @@
 {**
- * Template admin - Export comptable
+ * Template admin - Export comptable (module: export_comptable)
+ * $rows est un tableau de groupes : $rows[i] = [ligne1, ligne2, ...]
  *}
 
 <div class="panel">
@@ -7,7 +8,7 @@
 
     <form method="get" class="form-inline" style="gap:8px; display:flex; align-items:flex-end; flex-wrap:wrap;">
         <input type="hidden" name="controller" value="AdminExportComptable" />
-        <input type="hidden" name="token" value="{$smarty.get.token|escape:'html'}" />
+        <input type="hidden" name="token" value="{$token|escape:'html'}" />
 
         <div class="form-group">
             <label for="date_from">{l s='Date début' mod='export_comptable'}</label>
@@ -48,20 +49,23 @@
                     {/foreach}
                 </tr>
             </thead>
+
             <tbody>
                 {if $rows|@count == 0}
                     <tr>
-                        <td colspan="37" class="text-center text-muted">
+                        <td colspan="{$headers[1]|@count}" class="text-center text-muted">
                             {l s='Aucune donnée pour les critères sélectionnés.' mod='export_comptable'}
                         </td>
                     </tr>
                 {else}
-                    {foreach from=$rows item=line}
-                        <tr>
-                            {foreach from=$line key=k item=v}
-                                <td>{if $k=='MONT'}{$v|escape:'html'}{else}{$v|escape:'html'}{/if}</td>
-                            {/foreach}
-                        </tr>
+                    {foreach from=$rows item=invoiceRows}
+                        {foreach from=$invoiceRows item=line}
+                            <tr>
+                                {foreach from=$line item=cell}
+                                    <td>{$cell|escape:'html'}</td>
+                                {/foreach}
+                            </tr>
+                        {/foreach}
                     {/foreach}
                 {/if}
             </tbody>
@@ -74,20 +78,20 @@
         position: sticky;
         top: 0;
         z-index: 2;
-        background: #222;
-        color: #fff;
+        background: #fff;
+        color: #000;
     }
 
     thead tr:nth-child(2) th {
         position: sticky;
         top: 38px;
         z-index: 1;
-        background: #333;
-        color: #fff;
+        background: #fff;
+        color: #333;
         font-weight: normal;
     }
 
-    tbody tr:nth-child(4n+1) {
-        background: #f9f9f9;
+    tbody {
+        border-bottom: solid 3px #333;
     }
 </style>
