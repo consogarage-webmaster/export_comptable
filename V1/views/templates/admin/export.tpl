@@ -24,8 +24,8 @@
             <i class="icon-search"></i> {l s='Filtrer' mod='export_comptable'}
         </button>
 
-        <button type="submit" name="export_xlsm" value="1" class="btn btn-default">
-            <i class="icon-file-excel-o"></i> {l s='Exporter en XLSM' mod='export_comptable'}
+        <button type="submit" name="export_csv" value="1" class="btn btn-default">
+            <i class="icon-file-text"></i> {l s='Exporter en CSV' mod='export_comptable'}
         </button>
 
         {if not $date_from && not $date_to}
