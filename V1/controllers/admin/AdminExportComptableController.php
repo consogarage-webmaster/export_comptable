@@ -18,13 +18,13 @@ class AdminExportComptableController extends ModuleAdminController
         // Filtres
         $date_from = Tools::getValue('date_from');
         $date_to = Tools::getValue('date_to');
-        $export = (bool) Tools::getValue('export_xlsm');
+        $export = (bool) Tools::getValue('export_csv');
 
         // Données (tableau groupé : chaque élément = lignes d’une facture)
         $rows = $this->getAccountingRows($date_from, $date_to);
 
         if ($export) {
-            $this->exportXlsm($rows);
+            $this->exportCsv($rows);
             exit;
         }
 
@@ -60,7 +60,6 @@ class AdminExportComptableController extends ModuleAdminController
                 'Montant en euros',
                 'Code débit/crédit (C,D)',
                 'Compte général',
-                'Compte client',
                 'Date (date facture ?)',
                 'Code lettrage',
                 'Date lettrage',
@@ -100,7 +99,6 @@ class AdminExportComptableController extends ModuleAdminController
                 'MONT',
                 'CODC',
                 'CPTG',
-                'CPTC',
                 'DATE',
                 'CLET',
                 'DATL',
@@ -155,7 +153,6 @@ class AdminExportComptableController extends ModuleAdminController
                 oi.number AS invoice_number,
                 oi.date_add AS invoice_date,
                 o.id_order,
-                c.id_customer,
                 c.firstname, c.lastname, c.company,
                 a.id_country,
                 country.iso_code AS country_iso,
@@ -181,16 +178,11 @@ class AdminExportComptableController extends ModuleAdminController
             $dateStr = $invoiceDate->format('d/m/y');
             $isFrance = (strtoupper((string) $inv['country_iso']) === 'FR');
 
-            // Libellé: "Prénom Nom" ou "Prénom Nom - Société" (en majuscules)
+            // Libellé: "Prénom Nom" ou "Prénom Nom - Société"
             $label = trim($inv['firstname'] . ' ' . $inv['lastname']);
             if (!empty($inv['company'])) {
                 $label .= ' - ' . $inv['company'];
             }
-            $label = mb_strtoupper($label, 'UTF-8');
-
-            // Compte client : 41T + id_customer (8 chiffres au total)
-            $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
-            $compteClient = '41T' . $customerId;
 
             // Montants
             $total_ttc = (float) $inv['total_paid_tax_incl'];
@@ -213,8 +205,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'RACI' => '',
                 'MONT' => $this->fmt($total_ttc),
                 'CODC' => 'D',
-                'CPTG' => '41100000',
-                'CPTC' => $compteClient,
+                'CPTG' => '41100',
                 'DATE' => $dateStr,
                 'CLET' => $isFrance ? '00001' : '00101',
                 'DATL' => '',
@@ -255,8 +246,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'RACI' => '',
                 'MONT' => $this->fmt($total_ht_articles),
                 'CODC' => 'C',
-                'CPTG' => $isFrance ? '70700000' : '70710000',
-                'CPTC' => '',
+                'CPTG' => $isFrance ? '707000' : '707100',
                 'DATE' => $dateStr,
                 'CLET' => '',
                 'DATL' => '',
@@ -298,8 +288,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'RACI' => '',
                     'MONT' => $this->fmt($total_ht_shipping),
                     'CODC' => 'C',
-                    'CPTG' => $isFrance ? '70850000' : '70850100',
-                    'CPTC' => '',
+                    'CPTG' => $isFrance ? '708500' : '708501',
                     'DATE' => $dateStr,
                     'CLET' => '',
                     'DATL' => '',
@@ -342,8 +331,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'RACI' => '',
                     'MONT' => $this->fmt($total_taxes),
                     'CODC' => 'C',
-                    'CPTG' => '44570000',
-                    'CPTC' => '',
+                    'CPTG' => '445700',
                     'DATE' => $dateStr,
                     'CLET' => '',
                     'DATL' => '',
@@ -380,13 +368,13 @@ class AdminExportComptableController extends ModuleAdminController
 
     protected function fmt($number)
     {
-        // Décimale virgule (format français)
-        return number_format((float) $number, 2, ',', '');
+        // Décimale point (interop CSV/ERP)
+        return number_format((float) $number, 2, '.', '');
     }
 
     protected function makeRow(array $map)
     {
-        // Ordre strict des 38 colonnes
+        // Ordre strict des 37 colonnes
         $keys = [
             'TYPE',
             'JNAL',
@@ -400,7 +388,6 @@ class AdminExportComptableController extends ModuleAdminController
             'MONT',
             'CODC',
             'CPTG',
-            'CPTC',
             'DATE',
             'CLET',
             'DATL',
@@ -435,241 +422,25 @@ class AdminExportComptableController extends ModuleAdminController
     }
 
     /**
-     * Export XLSM (Office Open XML) standalone - sans dépendance externe
+     * Export CSV compatible avec la structure groupée ($rows = array<array<row>>)
      */
-    protected function exportXlsm(array $rows)
+    protected function exportCsv(array $rows)
     {
-        $filename = 'export_comptable_' . date('Ymd_His') . '.xlsm';
-        $tempDir = sys_get_temp_dir() . '/xlsm_' . uniqid();
-        mkdir($tempDir);
-
-        // Créer la structure Office Open XML
-        $this->createXlsxStructure($tempDir, $rows);
-
-        // Créer le fichier ZIP
-        $zipFile = $tempDir . '.zip';
-        $this->zipDirectory($tempDir, $zipFile);
-
-        // Envoyer le fichier
-        header('Content-Type: application/vnd.ms-excel.sheet.macroEnabled.12');
+        $filename = 'export_comptable_' . date('Ymd_His') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Content-Length: ' . filesize($zipFile));
-        readfile($zipFile);
 
-        // Nettoyage
-        $this->deleteDirectory($tempDir);
-        unlink($zipFile);
-    }
+        $out = fopen('php://output', 'w');
 
-    protected function createXlsxStructure($dir, $rows)
-    {
-        // Structure de base
-        mkdir($dir . '/_rels');
-        mkdir($dir . '/docProps');
-        mkdir($dir . '/xl');
-        mkdir($dir . '/xl/_rels');
-        mkdir($dir . '/xl/worksheets');
-
-        // [Content_Types].xml
-        file_put_contents($dir . '/[Content_Types].xml', $this->getContentTypes());
-
-        // _rels/.rels
-        file_put_contents($dir . '/_rels/.rels', $this->getRelsRoot());
-
-        // docProps/app.xml
-        file_put_contents($dir . '/docProps/app.xml', $this->getAppXml());
-
-        // docProps/core.xml
-        file_put_contents($dir . '/docProps/core.xml', $this->getCoreXml());
-
-        // xl/_rels/workbook.xml.rels
-        file_put_contents($dir . '/xl/_rels/workbook.xml.rels', $this->getWorkbookRels());
-
-        // xl/workbook.xml
-        file_put_contents($dir . '/xl/workbook.xml', $this->getWorkbookXml());
-
-        // xl/styles.xml
-        file_put_contents($dir . '/xl/styles.xml', $this->getStylesXml());
-
-        // xl/worksheets/sheet1.xml (avec les données)
-        file_put_contents($dir . '/xl/worksheets/sheet1.xml', $this->getSheetXml($rows));
-    }
-
-    protected function getContentTypes()
-    {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' .
-            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' .
-            '<Default Extension="xml" ContentType="application/xml"/>' .
-            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' .
-            '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
-            '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' .
-            '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' .
-            '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' .
-            '</Types>';
-    }
-
-    protected function getRelsRoot()
-    {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
-            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' .
-            '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' .
-            '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>' .
-            '</Relationships>';
-    }
-
-    protected function getAppXml()
-    {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">' .
-            '<Application>PrestaShop Export Comptable</Application>' .
-            '</Properties>';
-    }
-
-    protected function getCoreXml()
-    {
-        $now = date('Y-m-d\TH:i:s\Z');
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' .
-            'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" ' .
-            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' .
-            '<dc:creator>PrestaShop</dc:creator>' .
-            '<dcterms:created xsi:type="dcterms:W3CDTF">' . $now . '</dcterms:created>' .
-            '<dcterms:modified xsi:type="dcterms:W3CDTF">' . $now . '</dcterms:modified>' .
-            '</cp:coreProperties>';
-    }
-
-    protected function getWorkbookRels()
-    {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
-            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' .
-            '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' .
-            '</Relationships>';
-    }
-
-    protected function getWorkbookXml()
-    {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
-            '<sheets>' .
-            '<sheet name="Export Comptable" sheetId="1" r:id="rId1"/>' .
-            '</sheets>' .
-            '</workbook>';
-    }
-
-    protected function getStylesXml()
-    {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
-            '<fonts count="2">' .
-            '<font><sz val="11"/><name val="Calibri"/></font>' .
-            '<font><b/><sz val="11"/><name val="Calibri"/></font>' .
-            '</fonts>' .
-            '<fills count="1"><fill><patternFill patternType="none"/></fill></fills>' .
-            '<borders count="1"><border><left/><right/><top/><bottom/></border></borders>' .
-            '<cellXfs count="2">' .
-            '<xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>' .
-            '<xf numFmtId="0" fontId="1" fillId="0" borderId="0"/>' .
-            '</cellXfs>' .
-            '</styleSheet>';
-    }
-
-    protected function getSheetXml($rows)
-    {
         $headers = $this->getHeaders();
-        $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
-            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
-            '<sheetData>';
+        fputcsv($out, $headers[0], ';');
+        fputcsv($out, $headers[1], ';');
 
-        $rowNum = 1;
-
-        // En-têtes ligne 1 (avec style gras = s="1")
-        $xml .= '<row r="' . $rowNum . '">';
-        $colNum = 0;
-        foreach ($headers[0] as $header) {
-            $cellRef = $this->columnLetter($colNum) . $rowNum;
-            $xml .= '<c r="' . $cellRef . '" t="inlineStr" s="1"><is><t>' . htmlspecialchars($header, ENT_XML1, 'UTF-8') . '</t></is></c>';
-            $colNum++;
-        }
-        $xml .= '</row>';
-        $rowNum++;
-
-        // En-têtes ligne 2 (avec style gras = s="1")
-        $xml .= '<row r="' . $rowNum . '">';
-        $colNum = 0;
-        foreach ($headers[1] as $header) {
-            $cellRef = $this->columnLetter($colNum) . $rowNum;
-            $xml .= '<c r="' . $cellRef . '" t="inlineStr" s="1"><is><t>' . htmlspecialchars($header, ENT_XML1, 'UTF-8') . '</t></is></c>';
-            $colNum++;
-        }
-        $xml .= '</row>';
-        $rowNum++;
-
-        // Données
         foreach ($rows as $invoiceRows) {
             foreach ($invoiceRows as $r) {
-                $xml .= '<row r="' . $rowNum . '">';
-                $colNum = 0;
-                foreach (array_values($r) as $cell) {
-                    $cellRef = $this->columnLetter($colNum) . $rowNum;
-                    $xml .= '<c r="' . $cellRef . '" t="inlineStr"><is><t>' . htmlspecialchars($cell, ENT_XML1, 'UTF-8') . '</t></is></c>';
-                    $colNum++;
-                }
-                $xml .= '</row>';
-                $rowNum++;
+                fputcsv($out, array_values($r), ';');
             }
         }
-
-        $xml .= '</sheetData></worksheet>';
-        return $xml;
-    }
-
-    protected function columnLetter($col)
-    {
-        $letter = '';
-        while ($col >= 0) {
-            $letter = chr($col % 26 + 65) . $letter;
-            $col = floor($col / 26) - 1;
-        }
-        return $letter;
-    }
-
-    protected function zipDirectory($source, $destination)
-    {
-        $zip = new ZipArchive();
-        if ($zip->open($destination, ZipArchive::CREATE) !== true) {
-            die('Impossible de créer le fichier ZIP');
-        }
-
-        $source = realpath($source);
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($source),
-            RecursiveIteratorIterator::LEAVES_ONLY
-        );
-
-        foreach ($files as $file) {
-            if (!$file->isDir()) {
-                $filePath = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($source) + 1);
-                $zip->addFile($filePath, $relativePath);
-            }
-        }
-
-        $zip->close();
-    }
-
-    protected function deleteDirectory($dir)
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-        $files = array_diff(scandir($dir), ['.', '..']);
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
-        }
-        rmdir($dir);
+        fclose($out);
     }
 }
