@@ -133,8 +133,27 @@ class AdminExportComptableController extends ModuleAdminController
     /**
      * Retourne un tableau GROUPÉ : array<array<row>>
      * $groups[0] = [ligne1, ligne2, (ligne3 si frais), (ligne4 si TVA)]
+     * Inclut les factures ET les avoirs
      */
     protected function getAccountingRows($date_from, $date_to)
+    {
+        $groups = [];
+
+        // 1) Récupérer les factures
+        $invoiceGroups = $this->getInvoiceRows($date_from, $date_to);
+        $groups = array_merge($groups, $invoiceGroups);
+
+        // 2) Récupérer les avoirs
+        $creditSlipGroups = $this->getCreditSlipRows($date_from, $date_to);
+        $groups = array_merge($groups, $creditSlipGroups);
+
+        return $groups;
+    }
+
+    /**
+     * Récupère les lignes comptables pour les factures
+     */
+    protected function getInvoiceRows($date_from, $date_to)
     {
         // Construction du WHERE (échappé)
         $whereParts = ['oi.number > 0'];
@@ -373,6 +392,254 @@ class AdminExportComptableController extends ModuleAdminController
             }
 
             $groups[] = $invoiceRows;
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Récupère les lignes comptables pour les avoirs (écritures inversées)
+     */
+    protected function getCreditSlipRows($date_from, $date_to)
+    {
+        // Construction du WHERE pour les avoirs
+        $whereParts = ['os.id_order_slip > 0'];
+        if ($date_from) {
+            $whereParts[] = "DATE(os.date_add) >= '" . pSQL($date_from) . "'";
+        }
+        if ($date_to) {
+            $whereParts[] = "DATE(os.date_add) <= '" . pSQL($date_to) . "'";
+        }
+        $where = ' WHERE ' . implode(' AND ', $whereParts);
+
+        $orderBy = ' ORDER BY os.date_add DESC ';
+        $limit = (!$date_from && !$date_to) ? ' LIMIT 100 ' : '';
+
+        $sql = '
+            SELECT
+                os.id_order_slip,
+                os.id_order,
+                os.date_add AS slip_date,
+                os.total_products_tax_incl,
+                os.total_products_tax_excl,
+                os.total_shipping_tax_incl,
+                os.total_shipping_tax_excl,
+                os.amount,
+                o.id_order,
+                c.id_customer,
+                c.firstname, c.lastname, c.company,
+                a.id_country,
+                country.iso_code AS country_iso
+            FROM ' . _DB_PREFIX_ . 'order_slip os
+            INNER JOIN ' . _DB_PREFIX_ . 'orders o ON (o.id_order = os.id_order)
+            INNER JOIN ' . _DB_PREFIX_ . 'customer c ON (c.id_customer = o.id_customer)
+            INNER JOIN ' . _DB_PREFIX_ . 'address a ON (a.id_address = o.id_address_invoice)
+            INNER JOIN ' . _DB_PREFIX_ . 'country country ON (country.id_country = a.id_country)
+            ' . $where . $orderBy . $limit;
+
+        $slips = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+
+        $groups = [];
+        foreach ($slips as $slip) {
+            $slipRows = [];
+
+            $slipNumber = 'AV' . str_pad($slip['id_order_slip'], 6, '0', STR_PAD_LEFT);
+            $slipDate = new DateTime($slip['slip_date']);
+            $dateStr = $slipDate->format('d/m/y');
+            $isFrance = (strtoupper((string) $slip['country_iso']) === 'FR');
+
+            // Libellé: "Prénom Nom" ou "Prénom Nom - Société" (en majuscules)
+            $label = trim($slip['firstname'] . ' ' . $slip['lastname']);
+            if (!empty($slip['company'])) {
+                $label .= ' - ' . $slip['company'];
+            }
+            $label = mb_strtoupper($label, 'UTF-8');
+
+            // Compte client : 41T + id_customer (8 chiffres au total)
+            $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
+            $compteClient = '41T' . $customerId;
+
+            // Montants (positifs car on inverse ensuite avec CODC)
+            $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
+            $total_ht_articles = (float) $slip['total_products_tax_excl'];
+            $total_ht_shipping = (float) $slip['total_shipping_tax_excl'];
+            $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
+
+            $code_journal = 'VT';
+
+            // 1) Total TTC (CRÉDIT au lieu de Débit) — compte 41100
+            $slipRows[] = $this->makeRow([
+                'TYPE' => 'E',
+                'JNAL' => $code_journal,
+                'NECR' => '',
+                'NPIE' => $slipNumber,
+                'DATP' => $slipDate->format('d/m/Y'),
+                'LIBE' => $label,
+                'DATH' => '',
+                'CNPI' => '',
+                'RACI' => '',
+                'MONT' => $this->fmt($total_ttc),
+                'CODC' => 'C',  // INVERSÉ
+                'CPTG' => '41100000',
+                'CPTC' => $compteClient,
+                'DATE' => $dateStr,
+                'CLET' => $isFrance ? '00001' : '00101',
+                'DATL' => '',
+                'CPTA' => '',
+                'CNAT' => '',
+                'CTRE' => '',
+                'NORL' => '',
+                'DATV' => '',
+                'REFD' => '',
+                'NECA' => '',
+                'CSEC' => '',
+                'CAFF' => '',
+                'CDES' => '',
+                'QTUE' => '',
+                'MTDV' => '',
+                'CODV' => '',
+                'TXDV' => '',
+                'MOPM' => '',
+                'BONP' => '',
+                'BQAF' => '',
+                'ECES' => '',
+                'TXTL' => '',
+                'ECRM' => '',
+                'DATK' => '',
+                'HEUK' => '',
+            ]);
+
+            // 2) Total articles HT (DÉBIT au lieu de Crédit) — 707000/707100
+            $slipRows[] = $this->makeRow([
+                'TYPE' => 'E',
+                'JNAL' => $code_journal,
+                'NECR' => '',
+                'NPIE' => $slipNumber,
+                'DATP' => $slipDate->format('d/m/Y'),
+                'LIBE' => $label,
+                'DATH' => '',
+                'CNPI' => '',
+                'RACI' => '',
+                'MONT' => $this->fmt($total_ht_articles),
+                'CODC' => 'D',  // INVERSÉ
+                'CPTG' => $isFrance ? '70700000' : '70710000',
+                'CPTC' => '',
+                'DATE' => $dateStr,
+                'CLET' => '',
+                'DATL' => '',
+                'CPTA' => '',
+                'CNAT' => '',
+                'CTRE' => '',
+                'NORL' => '',
+                'DATV' => '',
+                'REFD' => '',
+                'NECA' => '',
+                'CSEC' => '',
+                'CAFF' => '',
+                'CDES' => '',
+                'QTUE' => '',
+                'MTDV' => '',
+                'CODV' => '',
+                'TXDV' => '',
+                'MOPM' => '',
+                'BONP' => '',
+                'BQAF' => '',
+                'ECES' => '',
+                'TXTL' => '',
+                'ECRM' => '',
+                'DATK' => '',
+                'HEUK' => '',
+            ]);
+
+            // 3) Frais de port HT (DÉBIT au lieu de Crédit) — 708500/708501 si non nul
+            if ($total_ht_shipping != 0.0) {
+                $slipRows[] = $this->makeRow([
+                    'TYPE' => 'E',
+                    'JNAL' => $code_journal,
+                    'NECR' => '',
+                    'NPIE' => $slipNumber,
+                    'DATP' => $slipDate->format('d/m/Y'),
+                    'LIBE' => $label,
+                    'DATH' => '',
+                    'CNPI' => '',
+                    'RACI' => '',
+                    'MONT' => $this->fmt($total_ht_shipping),
+                    'CODC' => 'D',  // INVERSÉ
+                    'CPTG' => $isFrance ? '70850000' : '70850100',
+                    'CPTC' => '',
+                    'DATE' => $dateStr,
+                    'CLET' => '',
+                    'DATL' => '',
+                    'CPTA' => '',
+                    'CNAT' => '',
+                    'CTRE' => '',
+                    'NORL' => '',
+                    'DATV' => '',
+                    'REFD' => '',
+                    'NECA' => '',
+                    'CSEC' => '',
+                    'CAFF' => '',
+                    'CDES' => '',
+                    'QTUE' => '',
+                    'MTDV' => '',
+                    'CODV' => '',
+                    'TXDV' => '',
+                    'MOPM' => '',
+                    'BONP' => '',
+                    'BQAF' => '',
+                    'ECES' => '',
+                    'TXTL' => '',
+                    'ECRM' => '',
+                    'DATK' => '',
+                    'HEUK' => '',
+                ]);
+            }
+
+            // 4) Total taxes (DÉBIT au lieu de Crédit) — 445700 si non nul
+            if ($total_taxes != 0.0) {
+                $slipRows[] = $this->makeRow([
+                    'TYPE' => 'E',
+                    'JNAL' => $code_journal,
+                    'NECR' => '',
+                    'NPIE' => $slipNumber,
+                    'DATP' => $slipDate->format('d/m/Y'),
+                    'LIBE' => $label,
+                    'DATH' => '',
+                    'CNPI' => '',
+                    'RACI' => '',
+                    'MONT' => $this->fmt($total_taxes),
+                    'CODC' => 'D',  // INVERSÉ
+                    'CPTG' => '44570000',
+                    'CPTC' => '',
+                    'DATE' => $dateStr,
+                    'CLET' => '',
+                    'DATL' => '',
+                    'CPTA' => '',
+                    'CNAT' => '',
+                    'CTRE' => '',
+                    'NORL' => '',
+                    'DATV' => '',
+                    'REFD' => '',
+                    'NECA' => '',
+                    'CSEC' => '',
+                    'CAFF' => '',
+                    'CDES' => '',
+                    'QTUE' => '',
+                    'MTDV' => '',
+                    'CODV' => '',
+                    'TXDV' => '',
+                    'MOPM' => '',
+                    'BONP' => '',
+                    'BQAF' => '',
+                    'ECES' => '',
+                    'TXTL' => '',
+                    'ECRM' => '',
+                    'DATK' => '',
+                    'HEUK' => '',
+                ]);
+            }
+
+            $groups[] = $slipRows;
         }
 
         return $groups;

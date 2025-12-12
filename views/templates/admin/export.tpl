@@ -30,7 +30,7 @@
 
         {if not $date_from && not $date_to}
             <span class="help-block" style="margin-left:8px">
-                {l s='Affichage des 100 dernières factures par défaut.' mod='export_comptable'}
+                {l s='Affichage des 100 dernières factures et avoirs par défaut.' mod='export_comptable'}
             </span>
         {/if}
     </form>
