@@ -261,7 +261,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'HEUK' => '',
             ]);
 
-            // 2) Total articles HT (Crédit) — 707000/707100
+            // 2) Total articles HT (Crédit) — 70700300/70792300
             $invoiceRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
@@ -274,7 +274,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'RACI' => '',
                 'MONT' => $this->fmt($total_ht_articles),
                 'CODC' => 'C',
-                'CPTG' => $isFrance ? '70700000' : '70710000',
+                'CPTG' => $isFrance ? '70700300' : '70792300',
                 'CPTC' => '',
                 'DATE' => $dateStr,
                 'CLET' => '',
@@ -303,7 +303,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'HEUK' => '',
             ]);
 
-            // 3) Frais de port HT (Crédit) — 708500/708501 si non nul
+            // 3) Frais de port HT (Crédit) — 70850300/70852300 si non nul
             if ($total_ht_shipping != 0.0) {
                 $invoiceRows[] = $this->makeRow([
                     'TYPE' => 'E',
@@ -317,7 +317,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'RACI' => '',
                     'MONT' => $this->fmt($total_ht_shipping),
                     'CODC' => 'C',
-                    'CPTG' => $isFrance ? '70850000' : '70850100',
+                    'CPTG' => $isFrance ? '70850300' : '70852300',
                     'CPTC' => '',
                     'DATE' => $dateStr,
                     'CLET' => '',
@@ -509,7 +509,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'HEUK' => '',
             ]);
 
-            // 2) Total articles HT (DÉBIT au lieu de Crédit) — 707000/707100
+            // 2) Total articles HT (DÉBIT au lieu de Crédit) — 70700300/70792300
             $slipRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
@@ -522,7 +522,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'RACI' => '',
                 'MONT' => $this->fmt($total_ht_articles),
                 'CODC' => 'D',  // INVERSÉ
-                'CPTG' => $isFrance ? '70700000' : '70710000',
+                'CPTG' => $isFrance ? '70700300' : '70792300',
                 'CPTC' => '',
                 'DATE' => $dateStr,
                 'CLET' => '',
@@ -551,7 +551,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'HEUK' => '',
             ]);
 
-            // 3) Frais de port HT (DÉBIT au lieu de Crédit) — 708500/708501 si non nul
+            // 3) Frais de port HT (DÉBIT au lieu de Crédit) — 70850300/70852300 si non nul
             if ($total_ht_shipping != 0.0) {
                 $slipRows[] = $this->makeRow([
                     'TYPE' => 'E',
@@ -565,7 +565,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'RACI' => '',
                     'MONT' => $this->fmt($total_ht_shipping),
                     'CODC' => 'D',  // INVERSÉ
-                    'CPTG' => $isFrance ? '70850000' : '70850100',
+                    'CPTG' => $isFrance ? '70850300' : '70852300',
                     'CPTC' => '',
                     'DATE' => $dateStr,
                     'CLET' => '',
