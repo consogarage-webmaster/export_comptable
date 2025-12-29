@@ -216,6 +216,7 @@ class AdminExportComptableController extends ModuleAdminController
             $total_ht_articles = (float) $inv['total_products_ht'];
             $total_ht_shipping = (float) $inv['shipping_ht'];
             $total_taxes = (float) $inv['total_paid_tax_incl'] - (float) $inv['total_paid_tax_excl'];
+            $total_consigne = $this->getConsigneTotalForOrder($inv['id_order']);
 
             $code_journal = 'VT';
 
@@ -391,6 +392,50 @@ class AdminExportComptableController extends ModuleAdminController
                 ]);
             }
 
+            // 5) Consigne HT (Crédit) — 70710300/70712300 si non nul
+            if ($total_consigne != 0.0) {
+                $invoiceRows[] = $this->makeRow([
+                    'TYPE' => 'E',
+                    'JNAL' => $code_journal,
+                    'NECR' => '',
+                    'NPIE' => $invoiceNumber,
+                    'DATP' => $invoiceDate->format('d/m/Y'),
+                    'LIBE' => $label,
+                    'DATH' => '',
+                    'CNPI' => '',
+                    'RACI' => '',
+                    'MONT' => $this->fmt($total_consigne),
+                    'CODC' => 'C',
+                    'CPTG' => $isFrance ? '70710300' : '70712300',
+                    'CPTC' => '',
+                    'DATE' => $dateStr,
+                    'CLET' => '',
+                    'DATL' => '',
+                    'CPTA' => '',
+                    'CNAT' => '',
+                    'CTRE' => '',
+                    'NORL' => '',
+                    'DATV' => '',
+                    'REFD' => '',
+                    'NECA' => '',
+                    'CSEC' => '',
+                    'CAFF' => '',
+                    'CDES' => '',
+                    'QTUE' => '',
+                    'MTDV' => '',
+                    'CODV' => '',
+                    'TXDV' => '',
+                    'MOPM' => '',
+                    'BONP' => '',
+                    'BQAF' => '',
+                    'ECES' => '',
+                    'TXTL' => '',
+                    'ECRM' => '',
+                    'DATK' => '',
+                    'HEUK' => '',
+                ]);
+            }
+
             $groups[] = $invoiceRows;
         }
 
@@ -464,6 +509,7 @@ class AdminExportComptableController extends ModuleAdminController
             $total_ht_articles = (float) $slip['total_products_tax_excl'];
             $total_ht_shipping = (float) $slip['total_shipping_tax_excl'];
             $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
+            $total_consigne = $this->getConsigneTotalForOrder($slip['id_order']);
 
             $code_journal = 'VT';
 
@@ -639,10 +685,70 @@ class AdminExportComptableController extends ModuleAdminController
                 ]);
             }
 
+            // 5) Consigne HT (DÉBIT au lieu de Crédit) — 70710300/70712300 si non nul
+            if ($total_consigne != 0.0) {
+                $slipRows[] = $this->makeRow([
+                    'TYPE' => 'E',
+                    'JNAL' => $code_journal,
+                    'NECR' => '',
+                    'NPIE' => $slipNumber,
+                    'DATP' => $slipDate->format('d/m/Y'),
+                    'LIBE' => $label,
+                    'DATH' => '',
+                    'CNPI' => '',
+                    'RACI' => '',
+                    'MONT' => $this->fmt($total_consigne),
+                    'CODC' => 'D',  // INVERSÉ
+                    'CPTG' => $isFrance ? '70710300' : '70712300',
+                    'CPTC' => '',
+                    'DATE' => $dateStr,
+                    'CLET' => '',
+                    'DATL' => '',
+                    'CPTA' => '',
+                    'CNAT' => '',
+                    'CTRE' => '',
+                    'NORL' => '',
+                    'DATV' => '',
+                    'REFD' => '',
+                    'NECA' => '',
+                    'CSEC' => '',
+                    'CAFF' => '',
+                    'CDES' => '',
+                    'QTUE' => '',
+                    'MTDV' => '',
+                    'CODV' => '',
+                    'TXDV' => '',
+                    'MOPM' => '',
+                    'BONP' => '',
+                    'BQAF' => '',
+                    'ECES' => '',
+                    'TXTL' => '',
+                    'ECRM' => '',
+                    'DATK' => '',
+                    'HEUK' => '',
+                ]);
+            }
+
             $groups[] = $slipRows;
         }
 
         return $groups;
+    }
+
+    /**
+     * Calcule le total des consignes pour une commande
+     */
+    protected function getConsigneTotalForOrder($id_order)
+    {
+        $sql = '
+            SELECT SUM(od.product_quantity * p.consigne) as total_consigne
+            FROM ' . _DB_PREFIX_ . 'order_detail od
+            INNER JOIN ' . _DB_PREFIX_ . 'product p ON (p.id_product = od.product_id)
+            WHERE od.id_order = ' . (int) $id_order . '
+            AND p.consigne > 0';
+
+        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql);
+        return (float) ($result['total_consigne'] ?? 0);
     }
 
     protected function fmt($number)
