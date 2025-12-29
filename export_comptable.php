@@ -7,7 +7,7 @@ class Export_Comptable extends Module
 {
     public function __construct()
     {
-        $this->name = 'export_comptable'; // doit correspondre au dossier
+        $this->name = 'export_comptable';
         $this->tab = 'administration';
         $this->version = '1.0.1';
         $this->author = 'ChatGPT';
