@@ -215,8 +215,11 @@ class AdminExportComptableController extends ModuleAdminController
             $total_ttc = (float) $inv['total_paid_tax_incl'];
             $total_ht_articles = (float) $inv['total_products_ht'];
             $total_ht_shipping = (float) $inv['shipping_ht'];
-            $total_taxes = (float) $inv['total_paid_tax_incl'] - (float) $inv['total_paid_tax_excl'];
             $total_consigne = $this->getConsigneTotalForOrder($inv['id_order']);
+
+            // Calcul TVA avec arrondi pour garantir l'équilibre comptable
+            // TVA = TTC - (Articles HT + Frais de port HT)
+            $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
 
             $code_journal = 'VT';
 
@@ -263,6 +266,8 @@ class AdminExportComptableController extends ModuleAdminController
             ]);
 
             // 2) Total articles HT (Crédit) — 70700300/70792300
+            // On retire la consigne car elle est incluse dans le prix de vente
+            $montant_articles_sans_consigne = $total_ht_articles - $total_consigne;
             $invoiceRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
@@ -273,7 +278,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'DATH' => '',
                 'CNPI' => '',
                 'RACI' => '',
-                'MONT' => $this->fmt($total_ht_articles),
+                'MONT' => $this->fmt($montant_articles_sans_consigne),
                 'CODC' => 'C',
                 'CPTG' => $isFrance ? '70700300' : '70792300',
                 'CPTC' => '',
@@ -508,12 +513,13 @@ class AdminExportComptableController extends ModuleAdminController
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
             $total_ht_articles = (float) $slip['total_products_tax_excl'];
             $total_ht_shipping = (float) $slip['total_shipping_tax_excl'];
-            $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
             $total_consigne = $this->getConsigneTotalForOrder($slip['id_order']);
 
-            $code_journal = 'VT';
+            // Calcul TVA avec arrondi pour garantir l'équilibre comptable
+            // TVA = TTC - (Articles HT + Frais de port HT)
+            $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
 
-            // 1) Total TTC (CRÉDIT au lieu de Débit) — compte 41100
+            $code_journal = 'VT';            // 1) Total TTC (CRÉDIT au lieu de Débit) — compte 41100
             $slipRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
@@ -556,6 +562,8 @@ class AdminExportComptableController extends ModuleAdminController
             ]);
 
             // 2) Total articles HT (DÉBIT au lieu de Crédit) — 70700300/70792300
+            // On retire la consigne car elle est incluse dans le prix de vente
+            $montant_articles_sans_consigne = $total_ht_articles - $total_consigne;
             $slipRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
@@ -566,7 +574,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'DATH' => '',
                 'CNPI' => '',
                 'RACI' => '',
-                'MONT' => $this->fmt($total_ht_articles),
+                'MONT' => $this->fmt($montant_articles_sans_consigne),
                 'CODC' => 'D',  // INVERSÉ
                 'CPTG' => $isFrance ? '70700300' : '70792300',
                 'CPTC' => '',
