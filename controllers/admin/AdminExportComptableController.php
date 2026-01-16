@@ -18,13 +18,13 @@ class AdminExportComptableController extends ModuleAdminController
         // Filtres
         $date_from = Tools::getValue('date_from');
         $date_to = Tools::getValue('date_to');
-        $export = (bool) Tools::getValue('export_xlsm');
+        $export = (bool) Tools::getValue('export_xlsx');
 
         // Données (tableau groupé : chaque élément = lignes d’une facture)
         $rows = $this->getAccountingRows($date_from, $date_to);
 
         if ($export) {
-            $this->exportXlsm($rows);
+            $this->exportXlsx($rows);
             exit;
         }
 
