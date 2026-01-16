@@ -816,12 +816,12 @@ class AdminExportComptableController extends ModuleAdminController
     }
 
     /**
-     * Export XLSM (Office Open XML) standalone - sans dépendance externe
+     * Export XLSX (Office Open XML) standalone - sans dépendance externe
      */
-    protected function exportXlsm(array $rows)
+    protected function exportXlsx(array $rows)
     {
-        $filename = 'export_comptable_' . date('Ymd_His') . '.xlsm';
-        $tempDir = sys_get_temp_dir() . '/xlsm_' . uniqid();
+        $filename = 'export_comptable_' . date('Ymd_His') . '.xlsx';
+        $tempDir = sys_get_temp_dir() . '/xlsx_' . uniqid();
         mkdir($tempDir);
 
         // Créer la structure Office Open XML
@@ -832,7 +832,7 @@ class AdminExportComptableController extends ModuleAdminController
         $this->zipDirectory($tempDir, $zipFile);
 
         // Envoyer le fichier
-        header('Content-Type: application/vnd.ms-excel.sheet.macroEnabled.12');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Length: ' . filesize($zipFile));
         readfile($zipFile);
