@@ -354,7 +354,8 @@ class AdminExportComptableController extends ModuleAdminController
             }
 
             // 4) Total taxes (Crédit) — 445700 si non nul
-            if ($total_taxes != 0.0) {
+            // Ne pas écrire de ligne TVA pour les ventes à l'étranger (exo)
+            if ($total_taxes != 0.0 && $isFrance) {
                 $invoiceRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
@@ -650,7 +651,8 @@ class AdminExportComptableController extends ModuleAdminController
             }
 
             // 4) Total taxes (DÉBIT au lieu de Crédit) — 445700 si non nul
-            if ($total_taxes != 0.0) {
+            // Ne pas écrire de ligne TVA pour les avoirs à l'étranger (exo)
+            if ($total_taxes != 0.0 && $isFrance) {
                 $slipRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
