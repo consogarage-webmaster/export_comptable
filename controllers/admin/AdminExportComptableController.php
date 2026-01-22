@@ -225,6 +225,15 @@ class AdminExportComptableController extends ModuleAdminController
 
             $code_journal = 'VT';
 
+            // Calcul de la date d'échéance (dernier jour du mois suivant)
+            $dath = '';
+            if (!empty($inv['payment_method']) && $inv['payment_method'] === 'Paiement en compte') {
+                $echeance = clone $invoiceDate;
+                $echeance->modify('first day of next month');
+                $echeance->modify('last day of this month');
+                $dath = $echeance->format('d/m/Y');
+            }
+
             // 1) Total TTC (Débit) — compte 41100 — lettrage CLET selon pays
             $invoiceRows[] = $this->makeRow([
                 'TYPE' => 'E',
@@ -233,7 +242,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'NPIE' => $invoiceNumber,
                 'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
-                'DATH' => !empty($inv['payment_method']) ? $inv['payment_method'] : '',
+                'DATH' => $dath,
                 'CNPI' => '',
                 'RACI' => '',
                 'MONT' => $this->fmt($total_ttc),
@@ -277,7 +286,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'NPIE' => $invoiceNumber,
                 'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
-                'DATH' => '',
+                'DATH' => $dath,
                 'CNPI' => '',
                 'RACI' => '',
                 'MONT' => $this->fmt($montant_articles_sans_consigne),
@@ -320,7 +329,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
-                    'DATH' => '',
+                    'DATH' => $dath,
                     'CNPI' => '',
                     'RACI' => '',
                     'MONT' => $this->fmt($total_ht_shipping),
@@ -365,7 +374,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
-                    'DATH' => '',
+                    'DATH' => $dath,
                     'CNPI' => '',
                     'RACI' => '',
                     'MONT' => $this->fmt($total_taxes),
@@ -409,7 +418,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
-                    'DATH' => '',
+                    'DATH' => $dath,
                     'CNPI' => '',
                     'RACI' => '',
                     'MONT' => $this->fmt($total_consigne),
@@ -524,7 +533,18 @@ class AdminExportComptableController extends ModuleAdminController
             // TVA = TTC - (Articles HT + Frais de port HT)
             $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
 
-            $code_journal = 'VT';            // 1) Total TTC (CRÉDIT au lieu de Débit) — compte 41100
+            $code_journal = 'VT';
+
+            // Calcul de la date d'échéance (dernier jour du mois suivant)
+            $dath = '';
+            if (!empty($slip['payment_method']) && $slip['payment_method'] === 'Paiement en compte') {
+                $echeance = clone $slipDate;
+                $echeance->modify('first day of next month');
+                $echeance->modify('last day of this month');
+                $dath = $echeance->format('d/m/Y');
+            }
+
+            // 1) Total TTC (CRÉDIT au lieu de Débit) — compte 41100
             $slipRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
@@ -532,7 +552,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'NPIE' => $slipNumber,
                 'DATP' => $slipDate->format('d/m/Y'),
                 'LIBE' => $label,
-                'DATH' => !empty($slip['payment_method']) ? $slip['payment_method'] : '',
+                'DATH' => $dath,
                 'CNPI' => '',
                 'RACI' => '',
                 'MONT' => $this->fmt($total_ttc),
@@ -576,7 +596,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'NPIE' => $slipNumber,
                 'DATP' => $slipDate->format('d/m/Y'),
                 'LIBE' => $label,
-                'DATH' => '',
+                'DATH' => $dath,
                 'CNPI' => '',
                 'RACI' => '',
                 'MONT' => $this->fmt($montant_articles_sans_consigne),
@@ -619,7 +639,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
-                    'DATH' => '',
+                    'DATH' => $dath,
                     'CNPI' => '',
                     'RACI' => '',
                     'MONT' => $this->fmt($total_ht_shipping),
@@ -664,7 +684,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
-                    'DATH' => '',
+                    'DATH' => $dath,
                     'CNPI' => '',
                     'RACI' => '',
                     'MONT' => $this->fmt($total_taxes),
@@ -708,7 +728,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
-                    'DATH' => '',
+                    'DATH' => $dath,
                     'CNPI' => '',
                     'RACI' => '',
                     'MONT' => $this->fmt($total_consigne),
