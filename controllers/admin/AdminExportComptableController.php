@@ -223,7 +223,7 @@ class AdminExportComptableController extends ModuleAdminController
             // TVA = TTC - (Articles HT + Frais de port HT)
             $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
 
-            $code_journal = 'VT';
+            $code_journal = '71';
 
             // Calcul de la date d'échéance (dernier jour du mois suivant)
             $dath = '';
@@ -533,7 +533,7 @@ class AdminExportComptableController extends ModuleAdminController
             // TVA = TTC - (Articles HT + Frais de port HT)
             $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
 
-            $code_journal = 'VT';
+            $code_journal = '71';
 
             // Calcul de la date d'échéance (dernier jour du mois suivant)
             $dath = '';
