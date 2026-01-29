@@ -234,6 +234,9 @@ class AdminExportComptableController extends ModuleAdminController
                 $dath = $echeance->format('d/m/Y');
             }
 
+            // Mode de paiement
+            $paymentMethod = !empty($inv['payment_method']) ? $inv['payment_method'] : '';
+
             // 1) Total TTC (Débit) — compte 41100 — lettrage CLET selon pays
             $invoiceRows[] = $this->makeRow([
                 'TYPE' => 'E',
@@ -310,7 +313,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MTDV' => '',
                 'CODV' => '',
                 'TXDV' => '',
-                'MOPM' => '',
+                'MOPM' => $paymentMethod,
                 'BONP' => '',
                 'BQAF' => '',
                 'ECES' => '',
@@ -353,7 +356,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MTDV' => '',
                     'CODV' => '',
                     'TXDV' => '',
-                    'MOPM' => '',
+                    'MOPM' => $paymentMethod,
                     'BONP' => '',
                     'BQAF' => '',
                     'ECES' => '',
@@ -398,7 +401,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MTDV' => '',
                     'CODV' => '',
                     'TXDV' => '',
-                    'MOPM' => '',
+                    'MOPM' => $paymentMethod,
                     'BONP' => '',
                     'BQAF' => '',
                     'ECES' => '',
@@ -442,7 +445,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MTDV' => '',
                     'CODV' => '',
                     'TXDV' => '',
-                    'MOPM' => '',
+                    'MOPM' => $paymentMethod,
                     'BONP' => '',
                     'BQAF' => '',
                     'ECES' => '',
@@ -544,6 +547,9 @@ class AdminExportComptableController extends ModuleAdminController
                 $dath = $echeance->format('d/m/Y');
             }
 
+            // Mode de paiement
+            $paymentMethod = !empty($slip['payment_method']) ? $slip['payment_method'] : '';
+
             // 1) Total TTC (CRÉDIT au lieu de Débit) — compte 41100
             $slipRows[] = $this->makeRow([
                 'TYPE' => 'E',
@@ -576,7 +582,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MTDV' => '',
                 'CODV' => '',
                 'TXDV' => '',
-                'MOPM' => '',
+                'MOPM' => $paymentMethod,
                 'BONP' => '',
                 'BQAF' => '',
                 'ECES' => '',
@@ -620,7 +626,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MTDV' => '',
                 'CODV' => '',
                 'TXDV' => '',
-                'MOPM' => '',
+                'MOPM' => $paymentMethod,
                 'BONP' => '',
                 'BQAF' => '',
                 'ECES' => '',
@@ -663,7 +669,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MTDV' => '',
                     'CODV' => '',
                     'TXDV' => '',
-                    'MOPM' => '',
+                    'MOPM' => $paymentMethod,
                     'BONP' => '',
                     'BQAF' => '',
                     'ECES' => '',
@@ -708,7 +714,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MTDV' => '',
                     'CODV' => '',
                     'TXDV' => '',
-                    'MOPM' => '',
+                    'MOPM' => $paymentMethod,
                     'BONP' => '',
                     'BQAF' => '',
                     'ECES' => '',
@@ -752,7 +758,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MTDV' => '',
                     'CODV' => '',
                     'TXDV' => '',
-                    'MOPM' => '',
+                    'MOPM' => $paymentMethod,
                     'BONP' => '',
                     'BQAF' => '',
                     'ECES' => '',
