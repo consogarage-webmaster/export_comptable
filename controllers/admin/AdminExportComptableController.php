@@ -709,8 +709,10 @@ class AdminExportComptableController extends ModuleAdminController
             }
 
             // 4) Total taxes (DÉBIT au lieu de Crédit) — 445700 si non nul
-            // Ne pas écrire de ligne TVA pour les avoirs à l'étranger (exo)
-            if ($total_taxes != 0.0 && $isFrance) {
+            // Afficher la ligne TVA uniquement si total_products_tax_excl + total_shipping_tax_excl != total_products_tax_incl + total_shipping_tax_incl
+            $ht = $slip['total_products_tax_excl'] + $slip['total_shipping_tax_excl'];
+            $ttc = $slip['total_products_tax_incl'] + $slip['total_shipping_tax_incl'];
+            if ($total_taxes != 0.0 && $ht != $ttc) {
                 $slipRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
@@ -724,7 +726,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MONT' => $this->fmt($total_taxes),
                     'CODC' => 'D',  // INVERSÉ
                     'CPTG' => '44570000',
-                    'CPTC' => '',
+                    // 'CPTC' => '',
                     'DATE' => $dateStr,
                     'CLET' => '',
                     'DATL' => '',
