@@ -60,7 +60,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'Montant en euros',
                 'Code débit/crédit (C,D)',
                 'Compte général',
-                'Compte client',
+                // 'Compte client',
                 'Date (date facture ?)',
                 'Code lettrage',
                 'Date lettrage',
@@ -100,7 +100,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MONT',
                 'CODC',
                 'CPTG',
-                'CPTC',
+                // 'CPTC',
                 'DATE',
                 'CLET',
                 'DATL',
@@ -209,9 +209,9 @@ class AdminExportComptableController extends ModuleAdminController
             }
             $label = mb_strtoupper($label, 'UTF-8');
 
-            // Compte client : 41T + id_customer (8 chiffres au total)
+            // Compte client : T + id_customer (8 chiffres au total)
             $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
-            $compteClient = '41T' . $customerId;
+            $compteClient = 'T' . $customerId;
 
             // Montants
             $total_ttc = (float) $inv['total_paid_tax_incl'];
@@ -251,7 +251,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MONT' => $this->fmt($total_ttc),
                 'CODC' => 'D',
                 'CPTG' => '41100000',
-                'CPTC' => $compteClient,
+                // 'CPTC' => $compteClient,
                 'DATE' => $dateStr,
                 'CLET' => '',
                 'DATL' => '',
@@ -295,7 +295,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MONT' => $this->fmt($montant_articles_sans_consigne),
                 'CODC' => 'C',
                 'CPTG' => $isFrance ? '70700300' : '70792300',
-                'CPTC' => '',
+                // 'CPTC' => '',
                 'DATE' => $dateStr,
                 'CLET' => '',
                 'DATL' => '',
@@ -522,9 +522,9 @@ class AdminExportComptableController extends ModuleAdminController
             }
             $label = mb_strtoupper($label, 'UTF-8');
 
-            // Compte client : 41T + id_customer (8 chiffres au total)
+            // Compte client : T + id_customer (8 chiffres au total)
             $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
-            $compteClient = '41T' . $customerId;
+            $compteClient = 'T' . $customerId;
 
             // Montants (positifs car on inverse ensuite avec CODC)
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
@@ -564,7 +564,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MONT' => $this->fmt($total_ttc),
                 'CODC' => 'C',  // INVERSÉ
                 'CPTG' => '41100000',
-                'CPTC' => $compteClient,
+                // 'CPTC' => $compteClient,
                 'DATE' => $dateStr,
                 'CLET' => '',
                 'DATL' => '',
@@ -608,7 +608,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MONT' => $this->fmt($montant_articles_sans_consigne),
                 'CODC' => 'D',  // INVERSÉ
                 'CPTG' => $isFrance ? '70700300' : '70792300',
-                'CPTC' => '',
+                // 'CPTC' => '',
                 'DATE' => $dateStr,
                 'CLET' => '',
                 'DATL' => '',
@@ -813,7 +813,6 @@ class AdminExportComptableController extends ModuleAdminController
             'MONT',
             'CODC',
             'CPTG',
-            'CPTC',
             'DATE',
             'CLET',
             'DATL',
