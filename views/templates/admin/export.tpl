@@ -36,7 +36,7 @@
     </form>
 
     <div class="table-responsive" style="margin-top:15px;">
-        <table class="table table-bordered">
+        <table class="table">
             <thead class="thead-dark sticky-header">
                 <tr>
                     {foreach from=$headers[0] item=th}
@@ -50,15 +50,18 @@
                 </tr>
             </thead>
 
-            <tbody>
-                {if $rows|@count == 0}
+            {if $rows|@count == 0}
+                <tbody>
                     <tr>
                         <td colspan="{$headers[1]|@count}" class="text-center text-muted">
                             {l s='Aucune donnée pour les critères sélectionnés.' mod='export_comptable'}
                         </td>
                     </tr>
-                {else}
-                    {foreach from=$rows item=invoiceRows}
+                </tbody>
+            {else}
+                {assign var=alt value=0}
+                {foreach from=$rows item=invoiceRows name=group}
+                    <tbody style="background:{if $smarty.foreach.group.iteration % 2 == 1}#fff{else}#f0f0f0{/if}">
                         {foreach from=$invoiceRows item=line}
                             <tr>
                                 {foreach from=$line item=cell}
@@ -66,9 +69,9 @@
                                 {/foreach}
                             </tr>
                         {/foreach}
-                    {/foreach}
-                {/if}
-            </tbody>
+                    </tbody>
+                {/foreach}
+            {/if}
         </table>
     </div>
 </div>
@@ -93,5 +96,17 @@
 
     tbody {
         border-bottom: solid 3px #333;
+    }
+
+    /* Correction du style Bootstrap pour permettre la couleur de fond du tbody */
+    .bootstrap .table tbody>tr>td {
+        padding: 3px 7px;
+        font-size: 12px;
+        color: #666;
+        word-wrap: nowrap;
+        vertical-align: middle;
+        background-color: inherit !important;
+        border-top: none;
+        border-bottom: solid 1px #eaedef;
     }
 </style>
