@@ -62,8 +62,16 @@
                 {assign var=alt value=0}
                 {foreach from=$rows item=invoiceRows name=group}
                     <tbody style="background:{if $smarty.foreach.group.iteration % 2 == 1}#fff{else}#f0f0f0{/if}">
-                        {foreach from=$invoiceRows item=line}
+                        {foreach from=$invoiceRows item=line name=lines}
                             <tr>
+                                <td style="font-weight:bold;color:#888;">
+                                    {if $smarty.foreach.lines.index == 0}TTC
+                                    {elseif $smarty.foreach.lines.index == 1}HT
+                                    {elseif $smarty.foreach.lines.index == 2}Frais port
+                                    {elseif $smarty.foreach.lines.index == 3}TVA
+                                    {elseif $smarty.foreach.lines.index == 4}Consigne
+                                    {/if}
+                                </td>
                                 {foreach from=$line item=cell}
                                     <td>{$cell|escape:'html'}</td>
                                 {/foreach}
