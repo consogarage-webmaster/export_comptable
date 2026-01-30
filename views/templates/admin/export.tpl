@@ -61,7 +61,28 @@
             {else}
                 {assign var=alt value=0}
                 {foreach from=$rows item=invoiceRows name=group}
+                    {assign var=debit value=0}
+                    {assign var=credit value=0}
+                    {foreach from=$invoiceRows item=line}
+                        {if $line.CODC == 'D'}
+                            {assign var=debit value=$debit + (floatval(str_replace(",", ".", $line.MONT)))}
+                        {elseif $line.CODC == 'C'}
+                            {assign var=credit value=$credit + (floatval(str_replace(",", ".", $line.MONT)))}
+                        {/if}
+                    {/foreach}
+                    {assign var=equilibre value=($debit|string_format:"%.2f") == ($credit|string_format:"%.2f")}
                     <tbody style="background:{if $smarty.foreach.group.iteration % 2 == 1}#fff{else}#f0f0f0{/if}">
+                        <tr>
+                            <td colspan="{$headers[1]|@count}"
+                                style="font-weight:bold; color:#fff; border-radius:4px; background:{if $equilibre}#4caf50!important{else}#ff9800!important{/if};">
+                                {if $equilibre}
+                                    <i class="icon-check"></i> {l s='Équilibré' mod='export_comptable'}
+                                {else}
+                                    <i class="icon-warning"></i> {l s='Non équilibré' mod='export_comptable'}
+                                {/if}
+                                — Débit : {$debit|string_format:"%.2f"} — Crédit : {$credit|string_format:"%.2f"}
+                            </td>
+                        </tr>
                         {foreach from=$invoiceRows item=line name=lines}
                             <tr>
                                 <td style="font-weight:bold;color:#888;">
@@ -116,5 +137,15 @@
         background-color: inherit !important;
         border-top: none;
         border-bottom: solid 1px #eaedef;
+    }
+
+    .equilibre-row.equilibre-ok td {
+        background: #4caf50 !important;
+        color: #fff !important;
+    }
+
+    .equilibre-row.equilibre-ko td {
+        background: #ff9800 !important;
+        color: #fff !important;
     }
 </style>
