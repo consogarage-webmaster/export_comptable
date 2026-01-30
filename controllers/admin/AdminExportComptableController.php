@@ -283,7 +283,7 @@ class AdminExportComptableController extends ModuleAdminController
                 'MTDV' => '',
                 'CODV' => '',
                 'TXDV' => '',
-                'MOPM' => '',
+                'MOPM' => $paymentMethod,
                 'BONP' => '',
                 'BQAF' => '',
                 'ECES' => '',
