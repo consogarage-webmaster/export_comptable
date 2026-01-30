@@ -234,8 +234,22 @@ class AdminExportComptableController extends ModuleAdminController
                 $dath = $echeance->format('d/m/Y');
             }
 
-            // Mode de paiement
-            $paymentMethod = !empty($inv['payment_method']) ? $inv['payment_method'] : '';
+            // Mode de paiement (correspondances personnalisées)
+            $paymentMethod = '';
+            if (!empty($inv['payment_method'])) {
+                $pm = $inv['payment_method'];
+                if ($pm === 'Transfert bancaire') {
+                    $paymentMethod = 'VI';
+                } elseif (strpos($pm, 'Cawl Online Payments') !== false) {
+                    $paymentMethod = 'CB';
+                } elseif ($pm === 'Paiement en compte') {
+                    $paymentMethod = 'TD';
+                } elseif ($pm === 'Mandat') {
+                    $paymentMethod = 'VI';
+                } else {
+                    $paymentMethod = $pm;
+                }
+            }
 
             // 1) Total TTC (Débit) — compte 41100 — lettrage CLET selon pays
             $invoiceRows[] = $this->makeRow([
@@ -547,8 +561,22 @@ class AdminExportComptableController extends ModuleAdminController
                 $dath = $echeance->format('d/m/Y');
             }
 
-            // Mode de paiement
-            $paymentMethod = !empty($slip['payment_method']) ? $slip['payment_method'] : '';
+            // Mode de paiement (correspondances personnalisées)
+            $paymentMethod = '';
+            if (!empty($slip['payment_method'])) {
+                $pm = $slip['payment_method'];
+                if ($pm === 'Transfert bancaire') {
+                    $paymentMethod = 'VI';
+                } elseif (strpos($pm, 'Cawl Online Payments') !== false) {
+                    $paymentMethod = 'CB';
+                } elseif ($pm === 'Paiement en compte') {
+                    $paymentMethod = 'TD';
+                } elseif ($pm === 'Mandat') {
+                    $paymentMethod = 'VI';
+                } else {
+                    $paymentMethod = $pm;
+                }
+            }
 
             // 1) Total TTC (CRÉDIT au lieu de Débit) — compte 41100
             $slipRows[] = $this->makeRow([
