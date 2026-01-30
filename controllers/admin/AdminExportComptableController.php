@@ -382,8 +382,8 @@ class AdminExportComptableController extends ModuleAdminController
             }
 
             // 4) Total taxes (Crédit) — 445700 si non nul
-            // Ne pas écrire de ligne TVA pour les ventes à l'étranger (exo)
-            if ($total_taxes != 0.0 && $isFrance) {
+            // Afficher la ligne TVA uniquement si total_paid_tax_excl != total_paid_tax_incl
+            if ($total_taxes != 0.0 && $inv['total_paid_tax_excl'] != $inv['total_paid_tax_incl']) {
                 $invoiceRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
@@ -397,7 +397,7 @@ class AdminExportComptableController extends ModuleAdminController
                     'MONT' => $this->fmt($total_taxes),
                     'CODC' => 'C',
                     'CPTG' => '44570000',
-                    'CPTC' => '',
+                    // 'CPTC' => '',
                     'DATE' => $dateStr,
                     'CLET' => '',
                     'DATL' => '',
