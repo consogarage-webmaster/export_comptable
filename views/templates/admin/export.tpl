@@ -6,6 +6,14 @@
 <div class="panel">
     <h3><i class="icon-download"></i> {l s='Export comptable' mod='export_comptable'}</h3>
 
+    <div class="alert alert-info" style="margin-bottom:16px;">
+        <i class="icon-info-circle"></i>
+        {l s='Export automatique chaque jour par tâche cron :' mod='export_comptable'}<br>
+        <code>0 2 * * * php /var/www/html/pts/modules/export_comptable/cron_export_comptable.php</code><br>
+        {l s='Le fichier généré se trouve dans le dossier "exports" sous le nom :' mod='export_comptable'}<br>
+        <code>export_comptable_YYYY-MM-DD.xlsx</code>
+    </div>
+
     <form method="get" class="form-inline" style="gap:8px; display:flex; align-items:flex-end; flex-wrap:wrap;">
         <input type="hidden" name="controller" value="AdminExportComptable" />
         <input type="hidden" name="token" value="{$token|escape:'html'}" />
