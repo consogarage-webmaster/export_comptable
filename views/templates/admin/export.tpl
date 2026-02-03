@@ -11,7 +11,7 @@
         {l s='Export automatique chaque jour par tâche cron :' mod='export_comptable'}<br>
         <code>0 2 * * * php /var/www/html/pts/modules/export_comptable/cron_export_comptable.php</code><br>
         {l s='Le fichier généré se trouve dans le dossier "exports" sous le nom :' mod='export_comptable'}<br>
-        <code>export_comptable_YYYY-MM-DD.xlsx</code>
+        <code>export_comptable_YYYY-MM-DD.csv</code>
     </div>
 
     <form method="get" class="form-inline" style="gap:8px; display:flex; align-items:flex-end; flex-wrap:wrap;">
@@ -32,8 +32,8 @@
             <i class="icon-search"></i> {l s='Filtrer' mod='export_comptable'}
         </button>
 
-        <button type="submit" name="export_xlsx" value="1" class="btn btn-default">
-            <i class="icon-file-excel-o"></i> {l s='Exporter en XLSX' mod='export_comptable'}
+        <button type="submit" name="export_csv" value="1" class="btn btn-default">
+            <i class="icon-file-text-o"></i> {l s='Exporter en CSV' mod='export_comptable'}
         </button>
 
         {if not $date_from && not $date_to}

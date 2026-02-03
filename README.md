@@ -7,7 +7,7 @@ Module PrestaShop pour l’export comptable des factures.
 - Ajoute un écran dans **Vendre > Commandes** pour exporter les écritures comptables des factures.
 - Filtre par date de facture.
 - Affiche les 100 dernières factures par défaut.
-- Export CSV des écritures (format compatible comptabilité).
+- Export CSV des écritures (format compatible comptabilité) avec séparateur point-virgule (;).
 - Tableau avec en-têtes sur deux lignes.
 
 ## Installation
@@ -28,7 +28,7 @@ Module PrestaShop pour l’export comptable des factures.
 
 ## Export automatique (cron)
 
-Ce module propose un script pour exporter chaque jour les écritures de la veille au format XLSX.
+Ce module propose un script pour exporter chaque jour les écritures de la veille au format CSV.
 
 ### Installation du cron
 
@@ -45,14 +45,14 @@ Cela lancera l’export chaque jour à 2h du matin.
 
 Le fichier sera généré dans le dossier `exports/` sous le nom :
 ```
-export_comptable_YYYY-MM-DD.xlsx
+export_comptable_YYYY-MM-DD.csv
 ```
 
 #### Notes
 - Le script exporte les écritures de la veille (date du jour - 1).
 - Les droits d’écriture doivent être accordés au dossier `exports/`.
 - Le script utilise la logique d’export du backoffice (mêmes colonnes et format).
-- Le format généré est XLSX (Excel, Office Open XML).
+- Le format généré est CSV avec séparateur point-virgule (;) et encodage UTF-8 avec BOM pour compatibilité Excel.
 
 ## Auteur
 

@@ -3,7 +3,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Script cron pour exporter les écritures comptables de la veille au format XLSX
+// Script cron pour exporter les écritures comptables de la veille au format CSV
 // Usage : à appeler en tâche cron chaque jour
 
 require_once(dirname(__FILE__) . '/../../config/config.inc.php');
@@ -41,32 +41,26 @@ try {
         die("Le dossier exports/ n'est pas accessible en écriture\n");
     }
 
-    $filename = 'export_comptable_' . $date_from . '.xlsx';
+    $filename = 'export_comptable_' . $date_from . '.csv';
     $filepath = $exportsDir . $filename;
-    $tempDir = sys_get_temp_dir() . '/xlsx_' . uniqid();
-    if (!mkdir($tempDir)) {
-        PrestaShopLogger::addLog('[CRON] Erreur création dossier temporaire : ' . $tempDir, 3);
-        die("Erreur création dossier temporaire\n");
+
+    // Générer le contenu CSV
+    $csvContent = ExportComptableTools::generateCsvContent($rows);
+    PrestaShopLogger::addLog('[CRON] Contenu CSV généré : ' . strlen($csvContent) . ' octets', 1);
+
+    // Ajouter BOM UTF-8 pour une meilleure compatibilité avec Excel
+    $csvContent = "\xEF\xBB\xBF" . $csvContent;
+
+    // Écrire le fichier
+    if (file_put_contents($filepath, $csvContent) === false) {
+        PrestaShopLogger::addLog('[CRON] Erreur écriture fichier CSV : ' . $filepath, 3);
+        die("Erreur écriture fichier CSV\n");
     }
 
-    ExportComptableTools::createXlsxStructure($tempDir, $rows);
-    PrestaShopLogger::addLog('[CRON] Structure XLSX créée dans : ' . $tempDir, 1);
+    PrestaShopLogger::addLog('[CRON] Fichier CSV généré : ' . $filepath, 1);
 
-    $zipFile = $tempDir . '.zip';
-    ExportComptableTools::zipDirectory($tempDir, $zipFile);
-    PrestaShopLogger::addLog('[CRON] ZIP créé : ' . $zipFile, 1);
-
-    if (!rename($zipFile, $filepath)) {
-        PrestaShopLogger::addLog('[CRON] Erreur renommage ZIP en XLSX', 3);
-        die("Erreur renommage ZIP en XLSX\n");
-    }
-    PrestaShopLogger::addLog('[CRON] Fichier XLSX généré : ' . $filepath, 1);
-
-    ExportComptableTools::deleteDirectory($tempDir);
-    PrestaShopLogger::addLog('[CRON] Dossier temporaire supprimé : ' . $tempDir, 1);
-
-    echo "Export comptable XLSX généré : $filepath\n";
+    echo "Export comptable CSV généré : $filepath\n";
 } catch (Exception $e) {
     PrestaShopLogger::addLog('[CRON] Exception : ' . $e->getMessage(), 3);
-    echo "Erreur lors de l\'export comptable : " . $e->getMessage() . "\n";
+    echo "Erreur lors de l'export comptable : " . $e->getMessage() . "\n";
 }

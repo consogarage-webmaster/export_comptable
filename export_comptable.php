@@ -17,7 +17,7 @@ class Export_Comptable extends Module
         parent::__construct();
 
         $this->displayName = $this->l('Export comptable');
-        $this->description = $this->l('Tableau (4 lignes par facture) + filtre date + export CSV.');
+        $this->description = $this->l('Tableau (4 lignes par facture) + filtre date + export CSV (séparateur ;).');
         $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => _PS_VERSION_];
     }
 
