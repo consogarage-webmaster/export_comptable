@@ -253,6 +253,8 @@ class AdminExportComptableController extends ModuleAdminController
                     $paymentMethod = 'TD';
                 } elseif ($pm === 'Mandat') {
                     $paymentMethod = 'VI';
+                } elseif (stripos($pm, 'chèque') !== false || stripos($pm, 'cheque') !== false) {
+                    $paymentMethod = 'CH';
                 } else {
                     $paymentMethod = $pm;
                 }
@@ -587,6 +589,8 @@ class AdminExportComptableController extends ModuleAdminController
                     $paymentMethod = 'TD';
                 } elseif ($pm === 'Mandat') {
                     $paymentMethod = 'VI';
+                } elseif (stripos($pm, 'chèque') !== false || stripos($pm, 'cheque') !== false) {
+                    $paymentMethod = 'CH';
                 } else {
                     $paymentMethod = $pm;
                 }

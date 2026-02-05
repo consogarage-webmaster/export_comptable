@@ -92,6 +92,8 @@ class ExportComptableTools
                     $paymentMethod = 'TD';
                 } elseif ($pm === 'Mandat') {
                     $paymentMethod = 'VI';
+                } elseif (stripos($pm, 'chèque') !== false || stripos($pm, 'cheque') !== false) {
+                    $paymentMethod = 'CH';
                 } else {
                     $paymentMethod = $pm;
                 }
@@ -385,6 +387,8 @@ class ExportComptableTools
                     $paymentMethod = 'TD';
                 } elseif ($pm === 'Mandat') {
                     $paymentMethod = 'VI';
+                } elseif (stripos($pm, 'chèque') !== false || stripos($pm, 'cheque') !== false) {
+                    $paymentMethod = 'CH';
                 } else {
                     $paymentMethod = $pm;
                 }
