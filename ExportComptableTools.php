@@ -95,7 +95,7 @@ class ExportComptableTools
             $invoiceRows[] = self::makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $invoiceNumber,
                 'NPIE' => $invoiceNumber,
                 'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -135,7 +135,7 @@ class ExportComptableTools
             $invoiceRows[] = self::makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $invoiceNumber,
                 'NPIE' => $invoiceNumber,
                 'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -175,7 +175,7 @@ class ExportComptableTools
                 $invoiceRows[] = self::makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $invoiceNumber,
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -217,7 +217,7 @@ class ExportComptableTools
                 $invoiceRows[] = self::makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $invoiceNumber,
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -258,7 +258,7 @@ class ExportComptableTools
                 $invoiceRows[] = self::makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $invoiceNumber,
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -384,7 +384,7 @@ class ExportComptableTools
             $slipRows[] = self::makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $slipNumber,
                 'NPIE' => $slipNumber,
                 'DATP' => $slipDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -424,7 +424,7 @@ class ExportComptableTools
             $slipRows[] = self::makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $slipNumber,
                 'NPIE' => $slipNumber,
                 'DATP' => $slipDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -464,7 +464,7 @@ class ExportComptableTools
                 $slipRows[] = self::makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $slipNumber,
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -508,7 +508,7 @@ class ExportComptableTools
                 $slipRows[] = self::makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $slipNumber,
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -549,7 +549,7 @@ class ExportComptableTools
                 $slipRows[] = self::makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $slipNumber,
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,

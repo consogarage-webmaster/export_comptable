@@ -258,7 +258,7 @@ class AdminExportComptableController extends ModuleAdminController
             $invoiceRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $invoiceNumber,
                 'NPIE' => $invoiceNumber,
                 'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -302,7 +302,7 @@ class AdminExportComptableController extends ModuleAdminController
             $invoiceRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $invoiceNumber,
                 'NPIE' => $invoiceNumber,
                 'DATP' => $invoiceDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -345,7 +345,7 @@ class AdminExportComptableController extends ModuleAdminController
                 $invoiceRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $invoiceNumber,
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -390,7 +390,7 @@ class AdminExportComptableController extends ModuleAdminController
                 $invoiceRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $invoiceNumber,
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -434,7 +434,7 @@ class AdminExportComptableController extends ModuleAdminController
                 $invoiceRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $invoiceNumber,
                     'NPIE' => $invoiceNumber,
                     'DATP' => $invoiceDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -588,7 +588,7 @@ class AdminExportComptableController extends ModuleAdminController
             $slipRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $invoiceNumber,
                 'NPIE' => $slipNumber,
                 'DATP' => $slipDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -632,7 +632,7 @@ class AdminExportComptableController extends ModuleAdminController
             $slipRows[] = $this->makeRow([
                 'TYPE' => 'E',
                 'JNAL' => $code_journal,
-                'NECR' => '',
+                'NECR' => $slipNumber,
                 'NPIE' => $slipNumber,
                 'DATP' => $slipDate->format('d/m/Y'),
                 'LIBE' => $label,
@@ -675,7 +675,7 @@ class AdminExportComptableController extends ModuleAdminController
                 $slipRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $slipNumber,
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -722,7 +722,7 @@ class AdminExportComptableController extends ModuleAdminController
                 $slipRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $slipNumber,
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
@@ -766,7 +766,7 @@ class AdminExportComptableController extends ModuleAdminController
                 $slipRows[] = $this->makeRow([
                     'TYPE' => 'E',
                     'JNAL' => $code_journal,
-                    'NECR' => '',
+                    'NECR' => $slipNumber,
                     'NPIE' => $slipNumber,
                     'DATP' => $slipDate->format('d/m/Y'),
                     'LIBE' => $label,
