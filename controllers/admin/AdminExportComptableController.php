@@ -228,13 +228,17 @@ class AdminExportComptableController extends ModuleAdminController
 
             $code_journal = '71';
 
-            // Calcul de la date d'échéance (dernier jour du mois suivant)
+            // Calcul de la date d'échéance
             $dath = '';
-            if (!empty($inv['payment_method']) && $inv['payment_method'] === 'Paiement en compte') {
-                $echeance = clone $invoiceDate;
-                $echeance->modify('first day of next month');
-                $echeance->modify('last day of this month');
-                $dath = $echeance->format('d/m/Y');
+            if (!empty($inv['payment_method'])) {
+                if ($inv['payment_method'] === 'Paiement en compte') {
+                    $echeance = clone $invoiceDate;
+                    $echeance->modify('first day of next month');
+                    $echeance->modify('last day of this month');
+                    $dath = $echeance->format('d/m/Y');
+                } elseif ($inv['payment_method'] === 'Transfert bancaire') {
+                    $dath = $invoiceDate->format('d/m/Y');
+                }
             }
 
             // Mode de paiement (correspondances personnalisées)
@@ -558,13 +562,17 @@ class AdminExportComptableController extends ModuleAdminController
 
             $code_journal = '71';
 
-            // Calcul de la date d'échéance (dernier jour du mois suivant)
+            // Calcul de la date d'échéance
             $dath = '';
-            if (!empty($slip['payment_method']) && $slip['payment_method'] === 'Paiement en compte') {
-                $echeance = clone $slipDate;
-                $echeance->modify('first day of next month');
-                $echeance->modify('last day of this month');
-                $dath = $echeance->format('d/m/Y');
+            if (!empty($slip['payment_method'])) {
+                if ($slip['payment_method'] === 'Paiement en compte') {
+                    $echeance = clone $slipDate;
+                    $echeance->modify('first day of next month');
+                    $echeance->modify('last day of this month');
+                    $dath = $echeance->format('d/m/Y');
+                } elseif ($slip['payment_method'] === 'Transfert bancaire') {
+                    $dath = $slipDate->format('d/m/Y');
+                }
             }
 
             // Mode de paiement (correspondances personnalisées)

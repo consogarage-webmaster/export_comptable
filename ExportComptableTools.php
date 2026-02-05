@@ -71,11 +71,15 @@ class ExportComptableTools
             $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
             $code_journal = '71';
             $dath = '';
-            if (!empty($inv['payment_method']) && $inv['payment_method'] === 'Paiement en compte') {
-                $echeance = clone $invoiceDate;
-                $echeance->modify('first day of next month');
-                $echeance->modify('last day of this month');
-                $dath = $echeance->format('d/m/Y');
+            if (!empty($inv['payment_method'])) {
+                if ($inv['payment_method'] === 'Paiement en compte') {
+                    $echeance = clone $invoiceDate;
+                    $echeance->modify('first day of next month');
+                    $echeance->modify('last day of this month');
+                    $dath = $echeance->format('d/m/Y');
+                } elseif ($inv['payment_method'] === 'Transfert bancaire') {
+                    $dath = $invoiceDate->format('d/m/Y');
+                }
             }
             $paymentMethod = '';
             if (!empty($inv['payment_method'])) {
@@ -360,11 +364,15 @@ class ExportComptableTools
             $total_taxes = $total_ttc - ($total_ht_articles + $total_ht_shipping);
             $code_journal = '71';
             $dath = '';
-            if (!empty($slip['payment_method']) && $slip['payment_method'] === 'Paiement en compte') {
-                $echeance = clone $slipDate;
-                $echeance->modify('first day of next month');
-                $echeance->modify('last day of this month');
-                $dath = $echeance->format('d/m/Y');
+            if (!empty($slip['payment_method'])) {
+                if ($slip['payment_method'] === 'Paiement en compte') {
+                    $echeance = clone $slipDate;
+                    $echeance->modify('first day of next month');
+                    $echeance->modify('last day of this month');
+                    $dath = $echeance->format('d/m/Y');
+                } elseif ($slip['payment_method'] === 'Transfert bancaire') {
+                    $dath = $slipDate->format('d/m/Y');
+                }
             }
             $paymentMethod = '';
             if (!empty($slip['payment_method'])) {
