@@ -208,6 +208,9 @@ class AdminExportComptableController extends ModuleAdminController
                 $label .= ' - ' . $inv['company'];
             }
             $label = mb_strtoupper($label, 'UTF-8');
+            // Nettoyer les caractères spéciaux pour LD Compta
+            require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
+            $label = ExportComptableTools::cleanLabel($label);
 
             // Compte client : T + id_customer (8 chiffres au total)
             $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
@@ -535,6 +538,9 @@ class AdminExportComptableController extends ModuleAdminController
                 $label .= ' - ' . $slip['company'];
             }
             $label = mb_strtoupper($label, 'UTF-8');
+            // Nettoyer les caractères spéciaux pour LD Compta
+            require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
+            $label = ExportComptableTools::cleanLabel($label);
 
             // Compte client : T + id_customer (8 chiffres au total)
             $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
@@ -887,12 +893,12 @@ class AdminExportComptableController extends ModuleAdminController
         require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
         $csvContent = ExportComptableTools::generateCsvContent($rows);
 
-        // Ajouter BOM UTF-8 pour une meilleure compatibilité avec Excel
-        $bom = "\xEF\xBB\xBF";
-        $output = $bom . $csvContent;
+        // Ne pas ajouter de BOM pour LD Compta/WinDev (peut causer des erreurs GPF)
+        // Utiliser ISO-8859-1 (Latin1) ou Windows-1252 pour meilleure compatibilité WinDev
+        $output = mb_convert_encoding($csvContent, 'Windows-1252', 'UTF-8');
 
         // Envoyer le fichier
-        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Type: text/csv; charset=Windows-1252');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Length: ' . strlen($output));
 

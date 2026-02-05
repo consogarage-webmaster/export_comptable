@@ -60,6 +60,8 @@ class ExportComptableTools
                 $label .= ' - ' . $inv['company'];
             }
             $label = mb_strtoupper($label, 'UTF-8');
+            // Nettoyer les caractères spéciaux pour LD Compta
+            $label = self::cleanLabel($label);
             $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
             $compteClient = 'T' . $customerId;
             $total_ttc = (float) $inv['total_paid_tax_incl'];
@@ -347,6 +349,8 @@ class ExportComptableTools
                 $label .= ' - ' . $slip['company'];
             }
             $label = mb_strtoupper($label, 'UTF-8');
+            // Nettoyer les caractères spéciaux pour LD Compta
+            $label = self::cleanLabel($label);
             $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
             $compteClient = 'T' . $customerId;
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
@@ -763,6 +767,7 @@ class ExportComptableTools
 
     /**
      * Convertit un tableau en ligne CSV avec séparateur ;
+     * Utilise CRLF pour Windows/WinDev et guillemets uniquement si nécessaire
      */
     protected static function arrayToCsvLine($array)
     {
@@ -771,12 +776,174 @@ class ExportComptableTools
             if ($index > 0) {
                 $line .= ';';
             }
-            // Convertir en string et échapper les guillemets
+            // Convertir en string
             $value = (string) $value;
-            $value = str_replace('"', '""', $value);
-            // Toujours entourer de guillemets pour éviter les problèmes d'encodage
-            $line .= '"' . $value . '"';
+
+            // Entourer de guillemets seulement si le champ contient des caractères spéciaux
+            if (
+                strpos($value, ';') !== false || strpos($value, '"') !== false ||
+                strpos($value, "\n") !== false || strpos($value, "\r") !== false
+            ) {
+                // Échapper les guillemets
+                $value = str_replace('"', '""', $value);
+                $line .= '"' . $value . '"';
+            } else {
+                $line .= $value;
+            }
         }
-        return $line . "\n";
+        // Utiliser CRLF pour Windows/WinDev
+        return $line . "\r\n";
+    }
+
+    /**
+     * Nettoie un libellé pour l'export comptable
+     * Supprime ou remplace les caractères problématiques
+     */
+    public static function cleanLabel($label)
+    {
+        // Supprimer les caractères de contrôle
+        $label = preg_replace('/[\x00-\x1F\x7F]/u', '', $label);
+
+        // Remplacer certains caractères accentués par leur équivalent
+        $label = str_replace(
+            [
+                'À',
+                'Á',
+                'Â',
+                'Ã',
+                'Ä',
+                'Å',
+                'Æ',
+                'Ç',
+                'È',
+                'É',
+                'Ê',
+                'Ë',
+                'Ì',
+                'Í',
+                'Î',
+                'Ï',
+                'Ð',
+                'Ñ',
+                'Ò',
+                'Ó',
+                'Ô',
+                'Õ',
+                'Ö',
+                'Ø',
+                'Ù',
+                'Ú',
+                'Û',
+                'Ü',
+                'Ý',
+                'Þ',
+                'ß',
+                'à',
+                'á',
+                'â',
+                'ã',
+                'ä',
+                'å',
+                'æ',
+                'ç',
+                'è',
+                'é',
+                'ê',
+                'ë',
+                'ì',
+                'í',
+                'î',
+                'ï',
+                'ð',
+                'ñ',
+                'ò',
+                'ó',
+                'ô',
+                'õ',
+                'ö',
+                'ø',
+                'ù',
+                'ú',
+                'û',
+                'ü',
+                'ý',
+                'þ',
+                'ÿ',
+                'Œ',
+                'œ'
+            ],
+            [
+                'A',
+                'A',
+                'A',
+                'A',
+                'A',
+                'A',
+                'AE',
+                'C',
+                'E',
+                'E',
+                'E',
+                'E',
+                'I',
+                'I',
+                'I',
+                'I',
+                'D',
+                'N',
+                'O',
+                'O',
+                'O',
+                'O',
+                'O',
+                'O',
+                'U',
+                'U',
+                'U',
+                'U',
+                'Y',
+                'TH',
+                'SS',
+                'A',
+                'A',
+                'A',
+                'A',
+                'A',
+                'A',
+                'AE',
+                'C',
+                'E',
+                'E',
+                'E',
+                'E',
+                'I',
+                'I',
+                'I',
+                'I',
+                'D',
+                'N',
+                'O',
+                'O',
+                'O',
+                'O',
+                'O',
+                'O',
+                'U',
+                'U',
+                'U',
+                'U',
+                'Y',
+                'TH',
+                'Y',
+                'OE',
+                'OE'
+            ],
+            $label
+        );
+
+        // Limiter la longueur (sécurité)
+        $label = mb_substr($label, 0, 100, 'UTF-8');
+
+        return $label;
     }
 }
