@@ -753,6 +753,260 @@ class ExportComptableTools
         ];
     }
 
+    public static function createXlsxStructure($dir, $rows)
+    {
+        mkdir($dir . '/_rels');
+        mkdir($dir . '/docProps');
+        mkdir($dir . '/xl');
+        mkdir($dir . '/xl/_rels');
+        mkdir($dir . '/xl/worksheets');
+        file_put_contents($dir . '/[Content_Types].xml', self::getContentTypes());
+        file_put_contents($dir . '/_rels/.rels', self::getRelsRoot());
+        file_put_contents($dir . '/docProps/app.xml', self::getAppXml());
+        file_put_contents($dir . '/docProps/core.xml', self::getCoreXml());
+        file_put_contents($dir . '/xl/_rels/workbook.xml.rels', self::getWorkbookRels());
+        file_put_contents($dir . '/xl/workbook.xml', self::getWorkbookXml());
+        file_put_contents($dir . '/xl/styles.xml', self::getStylesXml());
+        file_put_contents($dir . '/xl/worksheets/sheet1.xml', self::getSheetXml($rows));
+    }
+
+    protected static function getContentTypes()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' .
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' .
+            '<Default Extension="xml" ContentType="application/xml"/>' .
+            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' .
+            '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
+            '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' .
+            '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' .
+            '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' .
+            '</Types>';
+    }
+
+    protected static function getRelsRoot()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' .
+            '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' .
+            '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>' .
+            '</Relationships>';
+    }
+
+    protected static function getAppXml()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">' .
+            '<Application>PrestaShop Export Comptable</Application>' .
+            '</Properties>';
+    }
+
+    protected static function getCoreXml()
+    {
+        $now = date('Y-m-d\TH:i:s\Z');
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' .
+            'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" ' .
+            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' .
+            '<dc:creator>PrestaShop</dc:creator>' .
+            '<dcterms:created xsi:type="dcterms:W3CDTF">' . $now . '</dcterms:created>' .
+            '<dcterms:modified xsi:type="dcterms:W3CDTF">' . $now . '</dcterms:modified>' .
+            '</cp:coreProperties>';
+    }
+
+    protected static function getWorkbookRels()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' .
+            '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' .
+            '</Relationships>';
+    }
+
+    protected static function getWorkbookXml()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
+            '<sheets>' .
+            '<sheet name="Export Comptable" sheetId="1" r:id="rId1"/>' .
+            '</sheets>' .
+            '</workbook>';
+    }
+
+    protected static function getStylesXml()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
+            '<numFmts count="2">' .
+            '<numFmt numFmtId="164" formatCode="dd/mm/yyyy"/>' .
+            '<numFmt numFmtId="165" formatCode="#\,##0.00"/>' .
+            '</numFmts>' .
+            '<fonts count="2">' .
+            '<font><sz val="11"/><name val="Calibri"/></font>' .
+            '<font><b/><sz val="11"/><name val="Calibri"/></font>' .
+            '</fonts>' .
+            '<fills count="1"><fill><patternFill patternType="none"/></fill></fills>' .
+            '<borders count="1"><border><left/><right/><top/><bottom/></border></borders>' .
+            '<cellXfs count="4">' .
+            '<xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>' .
+            '<xf numFmtId="0" fontId="1" fillId="0" borderId="0"/>' .
+            '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>' .
+            '<xf numFmtId="165" fontId="0" fillId="0" borderId="0" applyNumberFormat="1"/>' .
+            '</cellXfs>' .
+            '</styleSheet>';
+    }
+
+    protected static function getSheetXml($rows)
+    {
+        $headers = self::getHeaders();
+        $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n" .
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
+            '<sheetData>';
+
+        $rowNum = 1;
+        $xml .= '<row r="' . $rowNum . '">';
+        $colNum = 0;
+        foreach ($headers[0] as $header) {
+            $cellRef = self::columnLetter($colNum) . $rowNum;
+            $xml .= '<c r="' . $cellRef . '" t="inlineStr" s="1"><is><t>' . htmlspecialchars($header, ENT_XML1, 'UTF-8') . '</t></is></c>';
+            $colNum++;
+        }
+        $xml .= '</row>';
+        $rowNum++;
+
+        $xml .= '<row r="' . $rowNum . '">';
+        $colNum = 0;
+        foreach ($headers[1] as $header) {
+            $cellRef = self::columnLetter($colNum) . $rowNum;
+            $xml .= '<c r="' . $cellRef . '" t="inlineStr" s="1"><is><t>' . htmlspecialchars($header, ENT_XML1, 'UTF-8') . '</t></is></c>';
+            $colNum++;
+        }
+        $xml .= '</row>';
+        $rowNum++;
+
+        foreach ($rows as $invoiceRows) {
+            foreach ($invoiceRows as $r) {
+                $xml .= '<row r="' . $rowNum . '">';
+                $colNum = 0;
+                foreach (array_values($r) as $cell) {
+                    $cellRef = self::columnLetter($colNum) . $rowNum;
+                    if ($cell === '') {
+                        $xml .= '<c r="' . $cellRef . '"/>';
+                    } else {
+                        $dateSerial = self::dateToExcelSerial($cell, $colNum);
+                        $numberValue = self::numberToExcelValue($cell, $colNum);
+                        if ($dateSerial !== null) {
+                            $xml .= '<c r="' . $cellRef . '" s="2"><v>' . $dateSerial . '</v></c>';
+                        } elseif ($numberValue !== null) {
+                            $xml .= '<c r="' . $cellRef . '" s="3"><v>' . $numberValue . '</v></c>';
+                        } else {
+                            $xml .= '<c r="' . $cellRef . '" t="inlineStr"><is><t>' . htmlspecialchars($cell, ENT_XML1, 'UTF-8') . '</t></is></c>';
+                        }
+                    }
+                    $colNum++;
+                }
+                $xml .= '</row>';
+                $rowNum++;
+            }
+        }
+        $xml .= '</sheetData></worksheet>';
+        return $xml;
+    }
+
+    protected static function columnLetter($col)
+    {
+        $letter = '';
+        while ($col >= 0) {
+            $letter = chr($col % 26 + 65) . $letter;
+            $col = floor($col / 26) - 1;
+        }
+        return $letter;
+    }
+
+    protected static function dateToExcelSerial($value, $colIndex)
+    {
+        if (!self::isDateColumn($colIndex)) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        $formats = ['d/m/Y', 'd/m/y'];
+        foreach ($formats as $format) {
+            $dt = DateTime::createFromFormat($format, $value);
+            if ($dt instanceof DateTime && $dt->format($format) === $value) {
+                $base = new DateTime('1899-12-30');
+                $days = (int) floor(($dt->getTimestamp() - $base->getTimestamp()) / 86400);
+                return $days;
+            }
+        }
+
+        return null;
+    }
+
+    protected static function numberToExcelValue($value, $colIndex)
+    {
+        if (!self::isNumberColumn($colIndex)) {
+            return null;
+        }
+
+        $normalized = str_replace(["\xc2\xa0", ' '], '', (string) $value);
+        $normalized = str_replace(',', '.', $normalized);
+        if ($normalized === '' || !is_numeric($normalized)) {
+            return null;
+        }
+
+        return rtrim(rtrim($normalized, '0'), '.') === '' ? '0' : $normalized;
+    }
+
+    protected static function isDateColumn($colIndex)
+    {
+        return in_array($colIndex, [4, 5, 6], true);
+    }
+
+    protected static function isNumberColumn($colIndex)
+    {
+        return $colIndex === 9;
+    }
+
+    public static function zipDirectory($source, $destination)
+    {
+        $zip = new ZipArchive();
+        if ($zip->open($destination, ZipArchive::CREATE) !== true) {
+            die('Impossible de créer le fichier ZIP');
+        }
+        $source = realpath($source);
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($source),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+        foreach ($files as $file) {
+            if (!$file->isDir()) {
+                $filePath = $file->getRealPath();
+                $relativePath = substr($filePath, strlen($source) + 1);
+                $zip->addFile($filePath, $relativePath);
+            }
+        }
+        $zip->close();
+    }
+
+    public static function deleteDirectory($dir)
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            is_dir($path) ? self::deleteDirectory($path) : unlink($path);
+        }
+        rmdir($dir);
+    }
+
     /**
      * Génère le contenu CSV avec séparateur point-virgule
      */

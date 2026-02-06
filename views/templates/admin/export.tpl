@@ -36,6 +36,10 @@
             <i class="icon-file-text-o"></i> {l s='Exporter en CSV' mod='export_comptable'}
         </button>
 
+        <button type="submit" name="export_xlsx" value="1" class="btn btn-default">
+            <i class="icon-file-excel-o"></i> {l s='Exporter en XLSX' mod='export_comptable'}
+        </button>
+
         {if not $date_from && not $date_to}
             <span class="help-block" style="margin-left:8px">
                 {l s='Affichage des 100 dernières factures et avoirs par défaut.' mod='export_comptable'}

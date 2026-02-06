@@ -18,13 +18,19 @@ class AdminExportComptableController extends ModuleAdminController
         // Filtres
         $date_from = Tools::getValue('date_from');
         $date_to = Tools::getValue('date_to');
-        $export = (bool) Tools::getValue('export_csv');
+        $exportCsv = (bool) Tools::getValue('export_csv');
+        $exportXlsx = (bool) Tools::getValue('export_xlsx');
 
         // Données (tableau groupé : chaque élément = lignes d'une facture)
         $rows = $this->getAccountingRows($date_from, $date_to);
 
-        if ($export) {
+        if ($exportCsv) {
             $this->exportCsv($rows);
+            exit;
+        }
+
+        if ($exportXlsx) {
+            $this->exportXlsx($rows);
             exit;
         }
 
@@ -915,5 +921,30 @@ class AdminExportComptableController extends ModuleAdminController
         header('Content-Length: ' . strlen($output));
 
         echo $output;
+    }
+
+    /**
+     * Export XLSX (Office Open XML) standalone - sans dépendance externe
+     */
+    protected function exportXlsx(array $rows)
+    {
+        $filename = 'export_comptable_' . date('Ymd_His') . '.xlsx';
+        $tempDir = sys_get_temp_dir() . '/xlsx_' . uniqid();
+        mkdir($tempDir);
+
+        require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
+
+        ExportComptableTools::createXlsxStructure($tempDir, $rows);
+
+        $zipFile = $tempDir . '.zip';
+        ExportComptableTools::zipDirectory($tempDir, $zipFile);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . filesize($zipFile));
+        readfile($zipFile);
+
+        ExportComptableTools::deleteDirectory($tempDir);
+        unlink($zipFile);
     }
 }
