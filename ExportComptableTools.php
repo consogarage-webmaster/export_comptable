@@ -662,6 +662,12 @@ class ExportComptableTools
             'DATK',
             'HEUK'
         ];
+        if (isset($map['CPTG'])) {
+            $cptg = (string) $map['CPTG'];
+            if (strlen($cptg) > 6 && substr($cptg, -2) === '00') {
+                $map['CPTG'] = substr($cptg, 0, -2);
+            }
+        }
         $row = [];
         foreach ($keys as $k) {
             $row[$k] = isset($map[$k]) ? $map[$k] : '';
