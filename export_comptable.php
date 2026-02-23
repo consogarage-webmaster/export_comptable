@@ -23,7 +23,13 @@ class Export_Comptable extends Module
 
     public function install()
     {
-        return parent::install() && $this->installTab();
+        $ok = parent::install() && $this->installTab();
+        // Seed la table de correspondance id_as400
+        $seedScript = dirname(__FILE__) . '/install_seed_id_as400.php';
+        if ($ok && file_exists($seedScript)) {
+            include($seedScript);
+        }
+        return $ok;
     }
 
     public function uninstall()

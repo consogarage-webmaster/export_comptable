@@ -3,6 +3,15 @@
 
 class ExportComptableTools
 {
+    /**
+     * Retourne l'id AS400 pour un client si existant, sinon null
+     */
+    public static function getIdAs400($id_customer)
+    {
+        $sql = 'SELECT id_as400 FROM ' . _DB_PREFIX_ . 'export_comptable_id_as400 WHERE id_customer = ' . (int) $id_customer . ' LIMIT 1';
+        $row = Db::getInstance()->getRow($sql);
+        return $row && !empty($row['id_as400']) ? $row['id_as400'] : null;
+    }
     public static function getAccountingRows($date_from, $date_to)
     {
         $groups = [];
@@ -62,7 +71,13 @@ class ExportComptableTools
             $label = mb_strtoupper($label, 'UTF-8');
             // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
+            // Utiliser id_as400 si dispo, sinon id_customer
+            $id_as400 = self::getIdAs400($inv['id_customer']);
+            if ($id_as400) {
+                $customerId = str_pad($id_as400, 5, '0', STR_PAD_LEFT);
+            } else {
+                $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
+            }
             $compteClient = 'T' . $customerId;
             $total_ttc = (float) $inv['total_paid_tax_incl'];
             $total_ht_articles = (float) $inv['total_products_ht'];
@@ -357,7 +372,13 @@ class ExportComptableTools
             $label = mb_strtoupper($label, 'UTF-8');
             // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
+            // Utiliser id_as400 si dispo, sinon id_customer
+            $id_as400 = self::getIdAs400($slip['id_customer']);
+            if ($id_as400) {
+                $customerId = str_pad($id_as400, 5, '0', STR_PAD_LEFT);
+            } else {
+                $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
+            }
             $compteClient = 'T' . $customerId;
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
             $total_ht_articles = (float) $slip['total_products_tax_excl'];
