@@ -51,6 +51,7 @@
         <table class="table">
             <thead class="thead-dark sticky-header">
                 <tr>
+                    <th rowspan="2">aide ligne</th>
                     {foreach from=$headers[0] item=th}
                         <th>{$th|escape:'html'}</th>
                     {/foreach}
@@ -65,7 +66,7 @@
             {if $rows|@count == 0}
                 <tbody>
                     <tr>
-                        <td colspan="{$headers[1]|@count}" class="text-center text-muted">
+                        <td colspan="{$headers[1]|@count + 1}" class="text-center text-muted">
                             {l s='Aucune donnée pour les critères sélectionnés.' mod='export_comptable'}
                         </td>
                     </tr>
@@ -85,7 +86,7 @@
                     {assign var=equilibre value=($debit|string_format:"%.2f") == ($credit|string_format:"%.2f")}
                     <tbody style="background:{if $smarty.foreach.group.iteration % 2 == 1}#fff{else}#f0f0f0{/if}">
                         <tr>
-                            <td colspan="{$headers[1]|@count}"
+                            <td colspan="{$headers[1]|@count+1}"
                                 style="font-weight:bold; color:#fff; border-radius:4px; background:{if $equilibre}#4caf50!important{else}#ff9800!important{/if};">
                                 {if $equilibre}
                                     <i class="icon-check"></i> {l s='Équilibré' mod='export_comptable'}
