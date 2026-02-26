@@ -62,7 +62,7 @@ class ExportComptableTools
             $invoiceRows = [];
             $invoiceNumber = (string) $inv['invoice_number'];
             $invoiceDate = new DateTime($inv['invoice_date']);
-            $dateStr = $invoiceDate->format('d/m/y');
+            $dateStr = $invoiceDate->format('d/m/Y');
             $isFrance = (strtoupper((string) $inv['country_iso']) === 'FR');
             $label = trim($inv['firstname'] . ' ' . $inv['lastname']);
             if (!empty($inv['company'])) {
@@ -363,7 +363,7 @@ class ExportComptableTools
             $slipRows = [];
             $slipNumber = 'AV' . str_pad($slip['id_order_slip'], 6, '0', STR_PAD_LEFT);
             $slipDate = new DateTime($slip['slip_date']);
-            $dateStr = $slipDate->format('d/m/y');
+            $dateStr = $slipDate->format('d/m/Y');
             $isFrance = (strtoupper((string) $slip['country_iso']) === 'FR');
             $label = trim($slip['firstname'] . ' ' . $slip['lastname']);
             if (!empty($slip['company'])) {
@@ -867,7 +867,7 @@ class ExportComptableTools
             '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
             '<numFmts count="2">' .
             '<numFmt numFmtId="164" formatCode="dd/mm/yyyy"/>' .
-            '<numFmt numFmtId="165" formatCode="#\,##0.00"/>' .
+            '<numFmt numFmtId="165" formatCode="#,##0.00"/>' .
             '</numFmts>' .
             '<fonts count="2">' .
             '<font><sz val="11"/><name val="Calibri"/></font>' .
@@ -920,7 +920,29 @@ class ExportComptableTools
                     $cellRef = self::columnLetter($colNum) . $rowNum;
                     if ($cell === '') {
                         $xml .= '<c r="' . $cellRef . '"/>';
+                    } elseif ($colNum === 12) {
+                        // Colonne DATE : supprimer apostrophes (ASCII + typographiques) puis forcer le format d/m/Y (année sur 4 chiffres)
+                        $date = (string) $cell;
+                        // Retirer apostrophe droite/’ gauche/‘ accent aigu diacritique qui peuvent préfixer la valeur
+                        $date = preg_replace('/^[\x{0027}\x{2019}\x{2018}\x{00B4}]+/u', '', $date);
+                        $date = trim($date);
+                        if (preg_match('/^\d{2}\/\d{2}\/\d{2}$/', $date)) {
+                            // Convertir d/m/y en d/m/Y
+                            $dt = DateTime::createFromFormat('d/m/y', $date);
+                            if ($dt)
+                                $date = $dt->format('d/m/Y');
+                        }
+                        $dateSerial = self::dateToExcelSerial($date, $colNum);
+                        if ($dateSerial !== null) {
+                            $xml .= '<c r="' . $cellRef . '" s="2"><v>' . $dateSerial . '</v></c>';
+                        } else {
+                            $xml .= '<c r="' . $cellRef . '" t="inlineStr"><is><t>' . htmlspecialchars($date, ENT_XML1, 'UTF-8') . '</t></is></c>';
+                        }
                     } else {
+                        // Retirer toute apostrophe préfixe (ASCII + typographiques) avant détection
+                        $cell = (string) $cell;
+                        $cell = preg_replace('/^[\x{0027}\x{2019}\x{2018}\x{00B4}]+/u', '', $cell);
+                        $cell = trim($cell);
                         $dateSerial = self::dateToExcelSerial($cell, $colNum);
                         $numberValue = self::numberToExcelValue($cell, $colNum);
                         if ($dateSerial !== null) {
@@ -983,16 +1005,24 @@ class ExportComptableTools
 
         $normalized = str_replace(["\xc2\xa0", ' '], '', (string) $value);
         $normalized = str_replace(',', '.', $normalized);
+        // Si la valeur commence par un point (ex ".45"), préfixer par 0 pour obtenir "0.45"
+        if (preg_match('/^(-?)\./', $normalized, $m)) {
+            $normalized = $m[1] . '0' . substr($normalized, strlen($m[0]) - 1);
+        }
         if ($normalized === '' || !is_numeric($normalized)) {
             return null;
         }
 
-        return rtrim(rtrim($normalized, '0'), '.') === '' ? '0' : $normalized;
+        // Toujours renvoyer une valeur avec 2 décimales (séparateur point) pour que Excel affiche
+        // systématiquement deux décimales via le format numérique
+        $floatVal = (float) $normalized;
+        return number_format($floatVal, 2, '.', '');
     }
 
     protected static function isDateColumn($colIndex)
     {
-        return in_array($colIndex, [4, 5, 6], true);
+        // Colonnes contenant des dates : DATP (4), DATH (6), DATE (12)
+        return in_array($colIndex, [4, 6, 12], true);
     }
 
     protected static function isNumberColumn($colIndex)
@@ -1051,11 +1081,50 @@ class ExportComptableTools
         // Données
         foreach ($rows as $invoiceRows) {
             foreach ($invoiceRows as $row) {
+                // Nettoyer apostrophes préfixes sur toutes les colonnes et formater certaines colonnes
+                foreach ($row as $key => $val) {
+                    $val = (string) $val;
+                    // Retirer apostrophes ASCII et typographiques en tête
+                    $val = preg_replace('/^[\x{0027}\x{2019}\x{2018}\x{00B4}]+/u', '', $val);
+                    $val = trim($val);
+                    // Colonne DATE -> forcer d/m/Y
+                    if ($key === 'DATE') {
+                        $val = self::formatDateCsv($val);
+                    }
+                    // Colonne MONT -> forcer deux décimales format français
+                    if ($key === 'MONT') {
+                        $norm = str_replace(["\xc2\xa0", ' '], '', $val);
+                        $norm = str_replace(',', '.', $norm);
+                        if ($norm !== '' && is_numeric($norm)) {
+                            $val = self::fmt((float) $norm);
+                        }
+                    }
+                    $row[$key] = $val;
+                }
                 $output .= self::arrayToCsvLine(array_values($row));
             }
         }
-
         return $output;
+    }
+
+    // Formatage DATE pour CSV
+    public static function formatDateCsv($date)
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $dt = DateTime::createFromFormat('Y-m-d', $date);
+            if ($dt)
+                return $dt->format('d/m/Y');
+        }
+        // Si format jj/mm/aa -> convertir en jj/mm/YYYY
+        if (preg_match('/^\d{2}\/\d{2}\/\d{2}$/', $date)) {
+            $dt = DateTime::createFromFormat('d/m/y', $date);
+            if ($dt)
+                return $dt->format('d/m/Y');
+        }
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $date)) {
+            return $date;
+        }
+        return $date;
     }
 
     /**

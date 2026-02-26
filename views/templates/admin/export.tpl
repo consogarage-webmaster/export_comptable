@@ -106,13 +106,20 @@
                                     {elseif $smarty.foreach.lines.index == 4}Consigne
                                     {/if}
                                 </td>
-                                {foreach from=$line item=cell}
-                                    <td>{$cell|escape:'html'}</td>
+                                {foreach from=$line item=cell key=cellKey}
+                                    <td>
+                                        {if $cellKey == 'DATE'}
+                                            {$cell|date_format:"%d/%m/%Y"}
+                                        {else}
+                                            {$cell|escape:'html'}
+                                        {/if}
+                                    </td>
                                 {/foreach}
-                            </tr>
-                        {/foreach}
-                    </tbody>
-                {/foreach}
+                            {/foreach}
+                        </tr>
+                    {/foreach}
+                </tbody>
+            {* {/foreach} *}
             {/if}
         </table>
     </div>
