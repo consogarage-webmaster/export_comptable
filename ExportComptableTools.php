@@ -3,15 +3,7 @@
 
 class ExportComptableTools
 {
-    /**
-     * Retourne l'id AS400 pour un client si existant, sinon null
-     */
-    public static function getIdAs400($id_customer)
-    {
-        $sql = 'SELECT id_as400 FROM ' . _DB_PREFIX_ . 'export_comptable_id_as400 WHERE id_customer = ' . (int) $id_customer . ' LIMIT 1';
-        $row = Db::getInstance()->getRow($sql);
-        return $row && !empty($row['id_as400']) ? $row['id_as400'] : null;
-    }
+    // Fonction getIdAs400 supprimée, le LEFT JOIN SQL est utilisé directement pour récupérer id_as400
     public static function getAccountingRows($date_from, $date_to)
     {
         $groups = [];
@@ -41,6 +33,7 @@ class ExportComptableTools
                 oi.date_add AS invoice_date,
                 o.id_order,
                 c.id_customer,
+                as4.id_as400 AS id_as400true,
                 c.firstname, c.lastname, c.company,
                 a.id_country,
                 country.iso_code AS country_iso,
@@ -55,6 +48,7 @@ class ExportComptableTools
             INNER JOIN ' . _DB_PREFIX_ . 'address a   ON (a.id_address = o.id_address_invoice)
             INNER JOIN ' . _DB_PREFIX_ . 'country country ON (country.id_country = a.id_country)
             LEFT JOIN ' . _DB_PREFIX_ . 'order_payment op ON (op.order_reference = o.reference)
+            EFT LEFT JOIN ' . _DB_PREFIX_ . 'export_comptable_id_as400 as4 ON (as4.id_customer = c.id_customer)
             ' . $where . $orderBy . $limit;
         $invoices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
         $groups = [];
@@ -71,14 +65,16 @@ class ExportComptableTools
             $label = mb_strtoupper($label, 'UTF-8');
             // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            // Utiliser id_as400 si dispo, sinon id_customer
-            $id_as400 = self::getIdAs400($inv['id_customer']);
-            if ($id_as400) {
-                $customerId = str_pad($id_as400, 5, '0', STR_PAD_LEFT);
+            // Afficher id_customer et id_as400true (ou null) dans CPTA
+            $id_customer = $inv['id_customer'];
+            $id_as400true = isset($inv['id_as400true']) ? $inv['id_as400true'] : null;
+            $cpta_display = 'T' . str_pad($id_customer, 5, '0', STR_PAD_LEFT);
+            if ($id_as400true !== null && $id_as400true !== '') {
+                $cpta_display .= ' / AS400:' . str_pad($id_as400true, 5, '0', STR_PAD_LEFT);
             } else {
-                $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
+                $cpta_display .= ' / AS400:null';
             }
-            $compteClient = 'T' . $customerId;
+            $compteClient = $cpta_display;
             $total_ttc = (float) $inv['total_paid_tax_incl'];
             $total_ht_articles = (float) $inv['total_products_ht'];
             $total_ht_shipping = (float) $inv['shipping_ht'];
@@ -372,14 +368,16 @@ class ExportComptableTools
             $label = mb_strtoupper($label, 'UTF-8');
             // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            // Utiliser id_as400 si dispo, sinon id_customer
-            $id_as400 = self::getIdAs400($slip['id_customer']);
-            if ($id_as400) {
-                $customerId = str_pad($id_as400, 5, '0', STR_PAD_LEFT);
+            // Afficher id_customer et id_as400true (ou null) dans CPTA
+            $id_customer = $slip['id_customer'];
+            $id_as400true = isset($slip['id_as400true']) ? $slip['id_as400true'] : null;
+            $cpta_display = 'T' . str_pad($id_customer, 5, '0', STR_PAD_LEFT);
+            if ($id_as400true !== null && $id_as400true !== '') {
+                $cpta_display .= ' / AS400:' . str_pad($id_as400true, 5, '0', STR_PAD_LEFT);
             } else {
-                $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
+                $cpta_display .= ' / AS400:null';
             }
-            $compteClient = 'T' . $customerId;
+            $compteClient = $cpta_display;
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
             $total_ht_articles = (float) $slip['total_products_tax_excl'];
             $total_ht_shipping = (float) $slip['total_shipping_tax_excl'];

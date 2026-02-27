@@ -181,6 +181,7 @@ class AdminExportComptableController extends ModuleAdminController
                 oi.date_add AS invoice_date,
                 o.id_order,
                 c.id_customer,
+                as4.id_as400 AS id_as400true,
                 c.firstname, c.lastname, c.company,
                 a.id_country,
                 country.iso_code AS country_iso,
@@ -195,6 +196,7 @@ class AdminExportComptableController extends ModuleAdminController
             INNER JOIN ' . _DB_PREFIX_ . 'address a   ON (a.id_address = o.id_address_invoice)
             INNER JOIN ' . _DB_PREFIX_ . 'country country ON (country.id_country = a.id_country)
             LEFT JOIN ' . _DB_PREFIX_ . 'order_payment op ON (op.order_reference = o.reference)
+            LEFT JOIN ' . _DB_PREFIX_ . 'export_comptable_id_as400 as4 ON (as4.id_customer = c.id_customer)
             ' . $where . $orderBy . $limit;
 
         $invoices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
@@ -218,9 +220,10 @@ class AdminExportComptableController extends ModuleAdminController
             require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
             $label = ExportComptableTools::cleanLabel($label);
 
-            // Compte client : T + id_customer (8 chiffres au total)
+            // Compte client : T + id_customer (5 chiffres) + AS400 (ou null)
             $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
-            $compteClient = 'T' . $customerId;
+            $id_as400 = isset($inv['id_as400true']) && $inv['id_as400true'] !== '' ? str_pad($inv['id_as400true'], 5, '0', STR_PAD_LEFT) : 'null';
+            $compteClient = 'T' . $customerId . ' / AS400:' . $id_as400;
 
             // Montants
             $total_ttc = (float) $inv['total_paid_tax_incl'];
@@ -521,6 +524,7 @@ class AdminExportComptableController extends ModuleAdminController
                 os.amount,
                 o.id_order,
                 c.id_customer,
+                as4.id_as400 AS id_as400true,
                 c.firstname, c.lastname, c.company,
                 a.id_country,
                 country.iso_code AS country_iso,
@@ -531,6 +535,7 @@ class AdminExportComptableController extends ModuleAdminController
             INNER JOIN ' . _DB_PREFIX_ . 'address a ON (a.id_address = o.id_address_invoice)
             INNER JOIN ' . _DB_PREFIX_ . 'country country ON (country.id_country = a.id_country)
             LEFT JOIN ' . _DB_PREFIX_ . 'order_payment op ON (op.order_reference = o.reference)
+            LEFT JOIN ' . _DB_PREFIX_ . 'export_comptable_id_as400 as4 ON (as4.id_customer = c.id_customer)
             ' . $where . $orderBy . $limit;
 
         $slips = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
@@ -554,9 +559,10 @@ class AdminExportComptableController extends ModuleAdminController
             require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
             $label = ExportComptableTools::cleanLabel($label);
 
-            // Compte client : T + id_customer (8 chiffres au total)
+            // Compte client : T + id_customer (5 chiffres) + AS400 (ou null)
             $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
-            $compteClient = 'T' . $customerId;
+            $id_as400 = isset($slip['id_as400true']) && $slip['id_as400true'] !== '' ? str_pad($slip['id_as400true'], 5, '0', STR_PAD_LEFT) : 'null';
+            $compteClient = 'T' . $customerId . ' / AS400:' . $id_as400;
 
             // Montants (positifs car on inverse ensuite avec CODC)
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];

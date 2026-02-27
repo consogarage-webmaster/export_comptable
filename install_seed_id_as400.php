@@ -33,7 +33,8 @@ if (method_exists(Db::getInstance(), 'getDatabaseName')) {
 }
 
 // Lecture du CSV
-$csvFile = __DIR__ . '/doc/correspondances_id_as400.csv';
+// Utiliser le fichier V2
+$csvFile = __DIR__ . '/doc/correspondances_id_as400-V2.csv';
 if (!file_exists($csvFile)) {
     die("Fichier CSV introuvable: $csvFile\n");
 }
@@ -46,8 +47,6 @@ if (!$handle) {
 // Suppression des anciennes données
 Db::getInstance()->execute("TRUNCATE TABLE `$table`");
 
-echo "Import terminé : $row lignes traitées.\n";
-
 $row = 0;
 $inserted = 0;
 while (($data = fgetcsv($handle, 1000, ';')) !== false) {
@@ -56,7 +55,7 @@ while (($data = fgetcsv($handle, 1000, ';')) !== false) {
         $row++;
         continue;
     }
-    $id_customer = (int) preg_replace('/\\D/', '', $data[0]);
+    $id_customer = (int) preg_replace('/\D/', '', $data[0]);
     $id_as400 = pSQL($data[1]);
     // Debug : afficher chaque ligne lue
     echo "Ligne $row : id_customer='$id_customer' id_as400='$id_as400'\n";
