@@ -65,16 +65,13 @@ class ExportComptableTools
             $label = mb_strtoupper($label, 'UTF-8');
             // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            // Afficher id_customer et id_as400true (ou null) dans CPTA
-            $id_customer = $inv['id_customer'];
-            $id_as400true = isset($inv['id_as400true']) ? $inv['id_as400true'] : null;
-            $cpta_display = 'T' . str_pad($id_customer, 5, '0', STR_PAD_LEFT);
-            if ($id_as400true !== null && $id_as400true !== '') {
-                $cpta_display .= ' / AS400:' . str_pad($id_as400true, 5, '0', STR_PAD_LEFT);
-            } else {
-                $cpta_display .= ' / AS400:null';
-            }
-            $compteClient = $cpta_display;
+            // CPTA : id_as400true si trouvé, sinon id_customer (export uniquement)
+            // if (isset($inv['id_as400true']) && $inv['id_as400true'] !== '' && $inv['id_as400true'] !== null) {
+            //     $compteClient = 'T' . str_pad($inv['id_as400true'], 5, '0', STR_PAD_LEFT);
+            // } else {
+            //     $compteClient = 'T' . str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
+            // }
+            $compteClient = 'test';
             $total_ttc = (float) $inv['total_paid_tax_incl'];
             $total_ht_articles = (float) $inv['total_products_ht'];
             $total_ht_shipping = (float) $inv['shipping_ht'];
@@ -125,7 +122,7 @@ class ExportComptableTools
                 'DATE' => $dateStr,
                 'CLET' => '',
                 'DATL' => '',
-                'CPTA' => $compteClient,
+                'CPTA' => '$compteClient',
                 'CNAT' => 'C',
                 'CTRE' => '',
                 'NORL' => '',
@@ -368,16 +365,12 @@ class ExportComptableTools
             $label = mb_strtoupper($label, 'UTF-8');
             // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            // Afficher id_customer et id_as400true (ou null) dans CPTA
-            $id_customer = $slip['id_customer'];
-            $id_as400true = isset($slip['id_as400true']) ? $slip['id_as400true'] : null;
-            $cpta_display = 'T' . str_pad($id_customer, 5, '0', STR_PAD_LEFT);
-            if ($id_as400true !== null && $id_as400true !== '') {
-                $cpta_display .= ' / AS400:' . str_pad($id_as400true, 5, '0', STR_PAD_LEFT);
+            // CPTA : id_as400true si trouvé, sinon id_customer (export uniquement)
+            if (isset($slip['id_as400true']) && $slip['id_as400true'] !== '' && $slip['id_as400true'] !== null) {
+                $compteClient = 'T' . str_pad($slip['id_as400true'], 5, '0', STR_PAD_LEFT);
             } else {
-                $cpta_display .= ' / AS400:null';
+                $compteClient = 'T' . str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
             }
-            $compteClient = $cpta_display;
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
             $total_ht_articles = (float) $slip['total_products_tax_excl'];
             $total_ht_shipping = (float) $slip['total_shipping_tax_excl'];

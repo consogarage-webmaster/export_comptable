@@ -107,7 +107,7 @@
                                     {/if}
                                 </td>
                                 {foreach from=$line item=cell key=cellKey}
-                                    <td>
+                                    <td class="{$cellKey}">
                                         {if $cellKey == 'DATE'}
                                             {$cell|date_format:"%d/%m/%Y"}
                                         {else}

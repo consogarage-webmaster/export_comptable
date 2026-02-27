@@ -220,10 +220,12 @@ class AdminExportComptableController extends ModuleAdminController
             require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
             $label = ExportComptableTools::cleanLabel($label);
 
-            // Compte client : T + id_customer (5 chiffres) + AS400 (ou null)
-            $customerId = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
-            $id_as400 = isset($inv['id_as400true']) && $inv['id_as400true'] !== '' ? str_pad($inv['id_as400true'], 5, '0', STR_PAD_LEFT) : 'null';
-            $compteClient = 'T' . $customerId . ' / AS400:' . $id_as400;
+            // Compte client : id_as400 si trouvé, sinon id_customer (5 chiffres)
+            if (isset($inv['id_as400true']) && $inv['id_as400true'] !== '' && $inv['id_as400true'] !== null) {
+                $compteClient = str_pad($inv['id_as400true'], 5, '0', STR_PAD_LEFT);
+            } else {
+                $compteClient = str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
+            }
 
             // Montants
             $total_ttc = (float) $inv['total_paid_tax_incl'];
@@ -559,10 +561,12 @@ class AdminExportComptableController extends ModuleAdminController
             require_once _PS_MODULE_DIR_ . 'export_comptable/ExportComptableTools.php';
             $label = ExportComptableTools::cleanLabel($label);
 
-            // Compte client : T + id_customer (5 chiffres) + AS400 (ou null)
-            $customerId = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
-            $id_as400 = isset($slip['id_as400true']) && $slip['id_as400true'] !== '' ? str_pad($slip['id_as400true'], 5, '0', STR_PAD_LEFT) : 'null';
-            $compteClient = 'T' . $customerId . ' / AS400:' . $id_as400;
+            // Compte client : id_as400 si trouvé, sinon id_customer (5 chiffres)
+            if (isset($slip['id_as400true']) && $slip['id_as400true'] !== '' && $slip['id_as400true'] !== null) {
+                $compteClient = str_pad($slip['id_as400true'], 5, '0', STR_PAD_LEFT);
+            } else {
+                $compteClient = str_pad($slip['id_customer'], 5, '0', STR_PAD_LEFT);
+            }
 
             // Montants (positifs car on inverse ensuite avec CODC)
             $total_ttc = (float) $slip['total_products_tax_incl'] + (float) $slip['total_shipping_tax_incl'];
