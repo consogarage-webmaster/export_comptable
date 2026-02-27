@@ -1,9 +1,9 @@
 <?php
-// Classe utilitaire pour l'export comptable sans dépendance au contexte BO
+
 
 class ExportComptableTools
 {
-    // Fonction getIdAs400 supprimée, le LEFT JOIN SQL est utilisé directement pour récupérer id_as400
+
     public static function getAccountingRows($date_from, $date_to)
     {
         $groups = [];
@@ -63,14 +63,8 @@ class ExportComptableTools
                 $label .= ' - ' . $inv['company'];
             }
             $label = mb_strtoupper($label, 'UTF-8');
-            // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            // CPTA : id_as400true si trouvé, sinon id_customer (export uniquement)
-            // if (isset($inv['id_as400true']) && $inv['id_as400true'] !== '' && $inv['id_as400true'] !== null) {
-            //     $compteClient = 'T' . str_pad($inv['id_as400true'], 5, '0', STR_PAD_LEFT);
-            // } else {
-            //     $compteClient = 'T' . str_pad($inv['id_customer'], 5, '0', STR_PAD_LEFT);
-            // }
+
             $compteClient = 'test';
             $total_ttc = (float) $inv['total_paid_tax_incl'];
             $total_ht_articles = (float) $inv['total_products_ht'];
@@ -363,9 +357,7 @@ class ExportComptableTools
                 $label .= ' - ' . $slip['company'];
             }
             $label = mb_strtoupper($label, 'UTF-8');
-            // Nettoyer les caractères spéciaux pour LD Compta
             $label = self::cleanLabel($label);
-            // CPTA : id_as400true si trouvé, sinon id_customer (export uniquement)
             if (isset($slip['id_as400true']) && $slip['id_as400true'] !== '' && $slip['id_as400true'] !== null) {
                 $compteClient = 'T' . str_pad($slip['id_as400true'], 5, '0', STR_PAD_LEFT);
             } else {
@@ -912,13 +904,13 @@ class ExportComptableTools
                     if ($cell === '') {
                         $xml .= '<c r="' . $cellRef . '"/>';
                     } elseif ($colNum === 12) {
-                        // Colonne DATE : supprimer apostrophes (ASCII + typographiques) puis forcer le format d/m/Y (année sur 4 chiffres)
+
                         $date = (string) $cell;
-                        // Retirer apostrophe droite/’ gauche/‘ accent aigu diacritique qui peuvent préfixer la valeur
+
                         $date = preg_replace('/^[\x{0027}\x{2019}\x{2018}\x{00B4}]+/u', '', $date);
                         $date = trim($date);
                         if (preg_match('/^\d{2}\/\d{2}\/\d{2}$/', $date)) {
-                            // Convertir d/m/y en d/m/Y
+
                             $dt = DateTime::createFromFormat('d/m/y', $date);
                             if ($dt)
                                 $date = $dt->format('d/m/Y');
@@ -930,7 +922,7 @@ class ExportComptableTools
                             $xml .= '<c r="' . $cellRef . '" t="inlineStr"><is><t>' . htmlspecialchars($date, ENT_XML1, 'UTF-8') . '</t></is></c>';
                         }
                     } else {
-                        // Retirer toute apostrophe préfixe (ASCII + typographiques) avant détection
+
                         $cell = (string) $cell;
                         $cell = preg_replace('/^[\x{0027}\x{2019}\x{2018}\x{00B4}]+/u', '', $cell);
                         $cell = trim($cell);
@@ -996,7 +988,7 @@ class ExportComptableTools
 
         $normalized = str_replace(["\xc2\xa0", ' '], '', (string) $value);
         $normalized = str_replace(',', '.', $normalized);
-        // Si la valeur commence par un point (ex ".45"), préfixer par 0 pour obtenir "0.45"
+
         if (preg_match('/^(-?)\./', $normalized, $m)) {
             $normalized = $m[1] . '0' . substr($normalized, strlen($m[0]) - 1);
         }
@@ -1004,15 +996,12 @@ class ExportComptableTools
             return null;
         }
 
-        // Toujours renvoyer une valeur avec 2 décimales (séparateur point) pour que Excel affiche
-        // systématiquement deux décimales via le format numérique
         $floatVal = (float) $normalized;
         return number_format($floatVal, 2, '.', '');
     }
 
     protected static function isDateColumn($colIndex)
     {
-        // Colonnes contenant des dates : DATP (4), DATH (6), DATE (12)
         return in_array($colIndex, [4, 6, 12], true);
     }
 
@@ -1055,34 +1044,24 @@ class ExportComptableTools
         rmdir($dir);
     }
 
-    /**
-     * Génère le contenu CSV avec séparateur point-virgule
-     */
     public static function generateCsvContent($rows)
     {
         $output = '';
         $headers = self::getHeaders();
 
-        // Ligne 1 : descriptions des colonnes
         $output .= self::arrayToCsvLine($headers[0]);
 
-        // Ligne 2 : codes des colonnes
         $output .= self::arrayToCsvLine($headers[1]);
 
-        // Données
         foreach ($rows as $invoiceRows) {
             foreach ($invoiceRows as $row) {
-                // Nettoyer apostrophes préfixes sur toutes les colonnes et formater certaines colonnes
                 foreach ($row as $key => $val) {
                     $val = (string) $val;
-                    // Retirer apostrophes ASCII et typographiques en tête
                     $val = preg_replace('/^[\x{0027}\x{2019}\x{2018}\x{00B4}]+/u', '', $val);
                     $val = trim($val);
-                    // Colonne DATE -> forcer d/m/Y
                     if ($key === 'DATE') {
                         $val = self::formatDateCsv($val);
                     }
-                    // Colonne MONT -> forcer deux décimales format français
                     if ($key === 'MONT') {
                         $norm = str_replace(["\xc2\xa0", ' '], '', $val);
                         $norm = str_replace(',', '.', $norm);
@@ -1098,7 +1077,6 @@ class ExportComptableTools
         return $output;
     }
 
-    // Formatage DATE pour CSV
     public static function formatDateCsv($date)
     {
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
@@ -1106,7 +1084,6 @@ class ExportComptableTools
             if ($dt)
                 return $dt->format('d/m/Y');
         }
-        // Si format jj/mm/aa -> convertir en jj/mm/YYYY
         if (preg_match('/^\d{2}\/\d{2}\/\d{2}$/', $date)) {
             $dt = DateTime::createFromFormat('d/m/y', $date);
             if ($dt)
@@ -1118,10 +1095,6 @@ class ExportComptableTools
         return $date;
     }
 
-    /**
-     * Convertit un tableau en ligne CSV avec séparateur ;
-     * Utilise CRLF pour Windows/WinDev et guillemets uniquement si nécessaire
-     */
     protected static function arrayToCsvLine($array)
     {
         $line = '';
@@ -1129,35 +1102,26 @@ class ExportComptableTools
             if ($index > 0) {
                 $line .= ';';
             }
-            // Convertir en string
             $value = (string) $value;
 
-            // Entourer de guillemets seulement si le champ contient des caractères spéciaux
             if (
                 strpos($value, ';') !== false || strpos($value, '"') !== false ||
                 strpos($value, "\n") !== false || strpos($value, "\r") !== false
             ) {
-                // Échapper les guillemets
                 $value = str_replace('"', '""', $value);
                 $line .= '"' . $value . '"';
             } else {
                 $line .= $value;
             }
         }
-        // Utiliser CRLF pour Windows/WinDev
         return $line . "\r\n";
     }
 
-    /**
-     * Nettoie un libellé pour l'export comptable
-     * Supprime ou remplace les caractères problématiques
-     */
+
     public static function cleanLabel($label)
     {
-        // Supprimer les caractères de contrôle
         $label = preg_replace('/[\x00-\x1F\x7F]/u', '', $label);
 
-        // Remplacer certains caractères accentués par leur équivalent
         $label = str_replace(
             [
                 'À',
@@ -1294,7 +1258,6 @@ class ExportComptableTools
             $label
         );
 
-        // Limiter la longueur (sécurité)
         $label = mb_substr($label, 0, 100, 'UTF-8');
 
         return $label;

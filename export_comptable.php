@@ -24,7 +24,6 @@ class Export_Comptable extends Module
     public function install()
     {
         $ok = parent::install() && $this->installTab();
-        // Seed la table de correspondance id_as400
         $seedScript = dirname(__FILE__) . '/install_seed_id_as400.php';
         if ($ok && file_exists($seedScript)) {
             include($seedScript);
@@ -39,7 +38,6 @@ class Export_Comptable extends Module
 
     protected function installTab()
     {
-        // Onglet sous Ventes > Commandes (AdminParentOrders)
         $id_parent = (int) Tab::getIdFromClassName('AdminParentOrders');
         if (!$id_parent) {
             $id_parent = 0;
