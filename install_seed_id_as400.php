@@ -1,16 +1,20 @@
 <?php
 
-
-define('_PS_ADMIN_DIR_', getcwd());
-require_once dirname(__FILE__) . '/../../config/config.inc.php';
-require_once dirname(__FILE__) . '/../../init.php';
+// Lorsque ce script est exécuté en standalone (CLI ou accès direct),
+// PrestaShop n'est pas encore chargé — on le bootstrape.
+// Lorsqu'il est include() depuis install(), PS est déjà chargé.
+$_seed_standalone = !defined('_PS_VERSION_');
+if ($_seed_standalone) {
+    define('_PS_ADMIN_DIR_', getcwd());
+    require_once dirname(__FILE__) . '/../../config/config.inc.php';
+    require_once dirname(__FILE__) . '/../../init.php';
+}
 
 if (!defined('_MYSQL_ENGINE_')) {
     define('_MYSQL_ENGINE_', 'InnoDB');
 }
 
 $table = _DB_PREFIX_ . 'export_comptable_id_as400';
-
 
 $sql = "CREATE TABLE IF NOT EXISTS `$table` (
     `id_customer` INT NOT NULL,
@@ -20,21 +24,30 @@ $sql = "CREATE TABLE IF NOT EXISTS `$table` (
 
 if (!Db::getInstance()->execute($sql)) {
     $error = Db::getInstance()->getMsgError();
-    die("Erreur lors de la création de la table : $error\n");
+    if ($_seed_standalone) {
+        die("Erreur lors de la création de la table : $error\n");
+    }
+    return false;
 }
 
-if (method_exists(Db::getInstance(), 'getDatabaseName')) {
+if ($_seed_standalone && method_exists(Db::getInstance(), 'getDatabaseName')) {
     echo "Base utilisée : " . Db::getInstance()->getDatabaseName() . "\n";
 }
 
 $csvFile = __DIR__ . '/doc/correspondances_id_as400-V2.csv';
 if (!file_exists($csvFile)) {
-    die("Fichier CSV introuvable: $csvFile\n");
+    if ($_seed_standalone) {
+        die("Fichier CSV introuvable: $csvFile\n");
+    }
+    return false;
 }
 
 $handle = fopen($csvFile, 'r');
 if (!$handle) {
-    die("Impossible d'ouvrir le fichier CSV\n");
+    if ($_seed_standalone) {
+        die("Impossible d'ouvrir le fichier CSV\n");
+    }
+    return false;
 }
 
 Db::getInstance()->execute("TRUNCATE TABLE `$table`");
@@ -48,7 +61,9 @@ while (($data = fgetcsv($handle, 1000, ';')) !== false) {
     }
     $id_customer = (int) preg_replace('/\D/', '', $data[0]);
     $id_as400 = pSQL($data[1]);
-    echo "Ligne $row : id_customer='$id_customer' id_as400='$id_as400'\n";
+    if ($_seed_standalone) {
+        echo "Ligne $row : id_customer='$id_customer' id_as400='$id_as400'\n";
+    }
     if ($id_customer && $id_as400) {
         if (
             Db::getInstance()->insert('export_comptable_id_as400', [
@@ -57,17 +72,18 @@ while (($data = fgetcsv($handle, 1000, ';')) !== false) {
             ])
         ) {
             $inserted++;
-        } else {
+        } elseif ($_seed_standalone) {
             echo "  -> ECHEC INSERTION\n";
         }
-    } else {
+    } elseif ($_seed_standalone) {
         echo "  -> LIGNE IGNORÉE\n";
     }
     $row++;
 }
 fclose($handle);
 
-echo "Import terminé : $row lignes traitées, $inserted insertions.\n";
-
-$count = Db::getInstance()->getValue("SELECT COUNT(*) FROM `$table`");
-echo "Nombre de lignes dans la table après import : $count\n";
+if ($_seed_standalone) {
+    echo "Import terminé : $row lignes traitées, $inserted insertions.\n";
+    $count = Db::getInstance()->getValue("SELECT COUNT(*) FROM `$table`");
+    echo "Nombre de lignes dans la table après import : $count\n";
+}
