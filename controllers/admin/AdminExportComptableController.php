@@ -169,6 +169,7 @@ class AdminExportComptableController extends ModuleAdminController
                 c.firstname, c.lastname, c.company,
                 a.id_country,
                 country.iso_code AS country_iso,
+                country_delivery.iso_code AS country_iso_delivery,
                 oi.total_paid_tax_incl,
                 oi.total_paid_tax_excl,
                 oi.total_products       AS total_products_ht,
@@ -179,6 +180,8 @@ class AdminExportComptableController extends ModuleAdminController
             INNER JOIN ' . _DB_PREFIX_ . 'customer c  ON (c.id_customer = o.id_customer)
             INNER JOIN ' . _DB_PREFIX_ . 'address a   ON (a.id_address = o.id_address_invoice)
             INNER JOIN ' . _DB_PREFIX_ . 'country country ON (country.id_country = a.id_country)
+            INNER JOIN ' . _DB_PREFIX_ . 'address a_delivery ON (a_delivery.id_address = o.id_address_delivery)
+            INNER JOIN ' . _DB_PREFIX_ . 'country country_delivery ON (country_delivery.id_country = a_delivery.id_country)
             LEFT JOIN ' . _DB_PREFIX_ . 'order_payment op ON (op.order_reference = o.reference)
             LEFT JOIN ' . _DB_PREFIX_ . 'export_comptable_id_as400 as4 ON (as4.id_customer = c.id_customer)
             ' . $where . $orderBy . $limit;
@@ -192,7 +195,8 @@ class AdminExportComptableController extends ModuleAdminController
             $invoiceNumber = (string) $inv['invoice_number'];
             $invoiceDate = new DateTime($inv['invoice_date']);
             $dateStr = $invoiceDate->format('d/m/y');
-            $isFrance = (strtoupper((string) $inv['country_iso']) === 'FR');
+            $isFrance = (strtoupper((string) $inv['country_iso']) === 'FR')
+                || (strtoupper((string) $inv['country_iso_delivery']) === 'FR');
 
             $label = trim($inv['firstname'] . ' ' . $inv['lastname']);
             if (!empty($inv['company'])) {
@@ -492,12 +496,15 @@ class AdminExportComptableController extends ModuleAdminController
                 c.firstname, c.lastname, c.company,
                 a.id_country,
                 country.iso_code AS country_iso,
+                country_delivery.iso_code AS country_iso_delivery,
                 op.payment_method
             FROM ' . _DB_PREFIX_ . 'order_slip os
             INNER JOIN ' . _DB_PREFIX_ . 'orders o ON (o.id_order = os.id_order)
             INNER JOIN ' . _DB_PREFIX_ . 'customer c ON (c.id_customer = o.id_customer)
             INNER JOIN ' . _DB_PREFIX_ . 'address a ON (a.id_address = o.id_address_invoice)
             INNER JOIN ' . _DB_PREFIX_ . 'country country ON (country.id_country = a.id_country)
+            INNER JOIN ' . _DB_PREFIX_ . 'address a_delivery ON (a_delivery.id_address = o.id_address_delivery)
+            INNER JOIN ' . _DB_PREFIX_ . 'country country_delivery ON (country_delivery.id_country = a_delivery.id_country)
             LEFT JOIN ' . _DB_PREFIX_ . 'order_payment op ON (op.order_reference = o.reference)
             LEFT JOIN ' . _DB_PREFIX_ . 'export_comptable_id_as400 as4 ON (as4.id_customer = c.id_customer)
             ' . $where . $orderBy . $limit;
@@ -511,7 +518,8 @@ class AdminExportComptableController extends ModuleAdminController
             $slipNumber = 'AV' . str_pad($slip['id_order_slip'], 6, '0', STR_PAD_LEFT);
             $slipDate = new DateTime($slip['slip_date']);
             $dateStr = $slipDate->format('d/m/y');
-            $isFrance = (strtoupper((string) $slip['country_iso']) === 'FR');
+            $isFrance = (strtoupper((string) $slip['country_iso']) === 'FR')
+                || (strtoupper((string) $slip['country_iso_delivery']) === 'FR');
 
             $label = trim($slip['firstname'] . ' ' . $slip['lastname']);
             if (!empty($slip['company'])) {
