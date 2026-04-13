@@ -61,7 +61,7 @@ class ExportComptableTools
             $invoiceDate = new DateTime($inv['invoice_date']);
             $dateStr = $invoiceDate->format('d/m/Y');
             $isFrance = (strtoupper((string) $inv['country_iso']) === 'FR')
-                || (strtoupper((string) $inv['country_iso_delivery']) === 'FR');
+                && (strtoupper((string) $inv['country_iso_delivery']) === 'FR');
             $label = trim($inv['firstname'] . ' ' . $inv['lastname']);
             if (!empty($inv['company'])) {
                 $label .= ' - ' . $inv['company'];
@@ -359,7 +359,7 @@ class ExportComptableTools
             $slipDate = new DateTime($slip['slip_date']);
             $dateStr = $slipDate->format('d/m/Y');
             $isFrance = (strtoupper((string) $slip['country_iso']) === 'FR')
-                || (strtoupper((string) $slip['country_iso_delivery']) === 'FR');
+                && (strtoupper((string) $slip['country_iso_delivery']) === 'FR');
             $label = trim($slip['firstname'] . ' ' . $slip['lastname']);
             if (!empty($slip['company'])) {
                 $label .= ' - ' . $slip['company'];
