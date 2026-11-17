@@ -60,6 +60,20 @@ try {
     PrestaShopLogger::addLog('[CRON] Fichier CSV généré : ' . $filepath, 1);
 
     echo "Export comptable CSV généré : $filepath\n";
+
+    // Envoi par e-mail aux destinataires configurés (Modules > Export comptable > Configurer)
+    $sent = $module->sendExportByEmail($filepath, $date_from, count($rows));
+    if ($sent === null) {
+        PrestaShopLogger::addLog('[CRON] Aucun destinataire configuré : export non envoyé par e-mail', 1);
+        echo "Aucun destinataire configuré : pas d'envoi par e-mail\n";
+    } elseif ($sent) {
+        $to = implode(', ', Export_Comptable::getCronEmails());
+        PrestaShopLogger::addLog('[CRON] Export envoyé par e-mail à : ' . $to, 1);
+        echo "Export envoyé par e-mail à : $to\n";
+    } else {
+        PrestaShopLogger::addLog('[CRON] Échec de l\'envoi par e-mail de ' . $filename . ' (vérifier la configuration e-mail de la boutique)', 3);
+        echo "Échec de l'envoi par e-mail\n";
+    }
 } catch (Exception $e) {
     PrestaShopLogger::addLog('[CRON] Exception : ' . $e->getMessage(), 3);
     echo "Erreur lors de l'export comptable : " . $e->getMessage() . "\n";

@@ -1,0 +1,7 @@
+Bonjour,
+
+Veuillez trouver en pièce jointe l'export comptable du {export_date} ({filename}).
+
+Nombre de factures et avoirs exportés : {nb_rows}
+
+Ce message est envoyé automatiquement chaque nuit par le module Export comptable de {shop_name}.
